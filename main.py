@@ -58,7 +58,6 @@ app.include_router(auth_router)
 from api.administracion import router as administracion_router
 app.include_router(administracion_router)
 
-
 # ══════════════════════════════════════════════════════════════════════════
 # ESQUEMA DE BASE DE DATOS (PostgreSQL)
 # ══════════════════════════════════════════════════════════════════════════
@@ -311,6 +310,26 @@ def seed_data(con = Depends(get_db)):
         raise e
 
     return {"ok": True, "msg": "Base de datos poblada con éxito."}
+
+# ══════════════════════════════════════════════════════════════════════════
+# PARCHES PARA EVITAR ENDPOINTS 404 Y DESCONGELAR EL FRONTEND
+# ══════════════════════════════════════════════════════════════════════════
+@app.get("/api/uniformes/resumen")
+def resumen_uniformes_mock():
+    return []  # Devuelve una lista vacía para que React no truene
+
+@app.get("/api/registro/historial")
+def historial_registro_mock():
+    return []  # Devuelve una lista vacía para que React no truene
+
+@app.get("/api/images/fondos_principales")
+def fondos_principales_mock():
+    return []
+
+@app.get("/api/imagenes/{seccion}")
+def imagenes_seccion_mock(seccion: str):
+    return []
+
 
 # ─── RUTAS ESTÁTICAS Y SPA ───
 if STATIC_DIR.exists():
