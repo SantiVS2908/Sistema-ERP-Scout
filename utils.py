@@ -1,3 +1,4 @@
+import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import uuid
@@ -6,12 +7,12 @@ from typing import Iterator, Optional
 from contextlib import contextmanager
 
 # ══════════════════════════════════════════════════════════════════════════
-# CONEXIÓN — PostgreSQL en Docker
+# CONEXIÓN DIRECTA A RAILWAY (HARDCODE)
 # ══════════════════════════════════════════════════════════════════════════
-# Esta es la llave hacia tu contenedor
-DB_URL = "postgresql://scout_admin:scout_password_123@localhost:5432/scoutdb"
+DB_URL = "postgresql://postgres:TrwgwCOqRAteTvHAoUUCoeYAJaPdYJOV@postgres.railway.internal:5432/railway"
 
 def get_db() -> Iterator[psycopg2.extensions.connection]:
+
     """
     Dependencia de FastAPI: abre una conexión nueva por request a PostgreSQL.
     Usamos RealDictCursor para que las filas se comporten como diccionarios.
