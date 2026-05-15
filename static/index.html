@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grupo Scout 22 Quetzalcoalt</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,700;0,900;1,300;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ─── TOKENS ─────────────────────────────────────────── */
+:root {
+  --ink:    #0f1e14;
+  --pine:   #1b4332;
+  --fern:   #2d6a4f;
+  --moss:   #40916c;
+  --sage:   #74b494;
+  --mist:   #d8f3dc;
+  --earth:  #8b5e3c;
+  --sun:    #e8a217;
+  --bark:   #f5ede4;
+  --cream:  #faf8f4;
+  --white:  #ffffff;
+  --border: rgba(27,67,50,.12);
+  --r:      10px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  overflow-x: hidden;
+}
+h1,h2,h3,h4 { font-family: 'Fraunces', serif; }
+a { text-decoration: none; color: inherit; }
+
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  opacity: .025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ─── STICKY NAV ─────────────────────────────────────── */
+#nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 68px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 5vw;
+  background: rgba(250,248,244,.97);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 1px 0 var(--border), 0 4px 24px rgba(15,30,20,.06);
+  transition: box-shadow .3s;
+}
+#nav.scrolled {
+  box-shadow: 0 1px 0 var(--border), 0 6px 28px rgba(15,30,20,.10);
+}
+.nav-logo { display: flex; align-items: center; gap: 10px; }
+.nav-logo-icon { height: 44px; width: auto; flex-shrink: 0; display: flex; align-items: center; }
+.nav-logo-icon img { height: 44px; width: auto; border-radius: 8px; object-fit: contain; }
+.nav-logo-text { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 700; color: var(--pine); line-height: 1.1; }
+.nav-logo-text span { display: block; font-size: 11px; font-family: 'DM Sans', sans-serif; font-weight: 400; color: var(--fern); opacity: .75; }
+.nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
+.nav-links a { font-size: 13.5px; font-weight: 500; color: var(--fern); transition: color .2s; }
+.nav-links a:hover { color: var(--pine); }
+.nav-cta {
+  background: var(--pine); color: var(--white) !important;
+  padding: 9px 20px; border-radius: 30px; font-weight: 600 !important;
+  transition: background .2s, transform .15s !important;
+  box-shadow: 0 2px 12px rgba(27,67,50,.3);
+}
+.nav-cta:hover { background: var(--moss) !important; transform: translateY(-1px); }
+.nav-bib {
+  background: transparent; color: var(--pine) !important;
+  padding: 9px 20px; border-radius: 30px; font-weight: 600 !important;
+  border: 1.5px solid rgba(27,67,50,.28) !important;
+  transition: background .2s, transform .15s, border-color .2s !important;
+}
+.nav-bib:hover { background: var(--mist) !important; border-color: var(--moss) !important; transform: translateY(-1px); }
+#nav-toggle { display: none; cursor: pointer; background: none; border: none; font-size: 24px; color: var(--pine); }
+
+/* ─── HERO ───────────────────────────────────────────── */
+#hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 120px 5vw 80px;
+  position: relative; overflow: hidden;
+  /* Foto de fondo directa en CSS — no depende de JS */
+  background-image: url('/static/images/fondos_principales/foto1.jpg');
+  background-size: cover;
+  background-position: center;
+  background-color: #0f1e14; /* fallback si la foto no carga */
+}
+/* Overlay oscuro para legibilidad del texto */
+#hero::before {
+  content: '';
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    rgba(10,24,16,.75) 0%,
+    rgba(10,24,16,.50) 55%,
+    rgba(10,24,16,.25) 100%
+  );
+}
+.hero-bg {
+  display: none; /* ya no necesario: el fondo está en #hero directamente */
+}
+.hero-bg-imgs {
+  position: absolute; inset: 0; z-index: 1;
+  overflow: hidden; pointer-events: none;
+}
+.hero-bg-imgs::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    105deg,
+    rgba(10,24,16,.75) 0%,
+    rgba(10,24,16,.50) 55%,
+    rgba(10,24,16,.25) 100%
+  );
+  z-index: 1;
+}
+.hero-bg-slide {
+  position: absolute; inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+  will-change: opacity;
+}
+.hero-bg-slide.active { opacity: 1; }
+.hero-content { max-width: 640px; position: relative; z-index: 1; }
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,.15); color: rgba(255,255,255,.90);
+  padding: 6px 14px; border-radius: 30px;
+  font-size: 12.5px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase;
+  margin-bottom: 28px; border: 1px solid rgba(255,255,255,.3);
+  animation: slideDown .6s ease both;
+  backdrop-filter: blur(6px);
+}
+.hero-badge::before { content: '🌿'; }
+h1.hero-title {
+  font-size: clamp(3.2rem, 7vw, 5.2rem);
+  font-weight: 900; line-height: .95; color: var(--white); margin-bottom: 24px;
+  animation: slideUp .7s ease .1s both;
+}
+h1.hero-title em { font-style: italic; color: var(--sage); }
+.hero-desc {
+  font-size: 1.05rem; line-height: 1.7; color: rgba(255,255,255,.80); max-width: 480px;
+  margin-bottom: 40px; animation: slideUp .7s ease .2s both;
+}
+.hero-actions { display: flex; gap: 14px; flex-wrap: wrap; animation: slideUp .7s ease .3s both; }
+.btn-hero {
+  padding: 14px 28px; border-radius: 50px;
+  font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+  cursor: pointer; border: none; transition: all .2s; display: inline-flex; align-items: center; gap: 8px;
+}
+.btn-hero-primary { background: var(--moss); color: var(--white); box-shadow: 0 4px 20px rgba(27,67,50,.5); }
+.btn-hero-primary:hover { background: var(--fern); transform: translateY(-2px); box-shadow: 0 6px 28px rgba(27,67,50,.6); }
+.btn-hero-outline { background: rgba(255,255,255,.12); color: var(--white); border: 2px solid rgba(255,255,255,.5) !important; backdrop-filter: blur(4px); }
+.btn-hero-outline:hover { background: rgba(255,255,255,.22); transform: translateY(-2px); }
+.hero-stats { display: flex; gap: 40px; margin-top: 64px; flex-wrap: wrap; animation: slideUp .7s ease .4s both; position: relative; z-index: 1; }
+.hero-stat-num { font-family: 'Fraunces', serif; font-size: 2.8rem; font-weight: 700; color: var(--white); line-height: 1; }
+.hero-stat-label { font-size: 12px; color: rgba(255,255,255,.65); margin-top: 2px; font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
+.hero-visual { position: absolute; right: 3vw; top: 50%; transform: translateY(-50%); width: min(42vw, 440px); animation: floatIn .9s ease .2s both; }
+.hero-card-cluster { position: relative; height: 420px; }
+.hc { position: absolute; background: var(--white); border-radius: 18px; box-shadow: 0 8px 40px rgba(15,30,20,.12); padding: 20px; font-size: 13px; border: 1px solid var(--border); }
+.hc-main { width: 240px; top: 40px; left: 20px; animation: hcFloat 4s ease-in-out infinite; }
+.hc-sub1 { width: 175px; top: 10px; right: 0; animation: hcFloat 4s ease-in-out .8s infinite; }
+.hc-sub2 { width: 195px; bottom: 20px; right: 20px; animation: hcFloat 4s ease-in-out 1.6s infinite; }
+.hc-icon { font-size: 28px; margin-bottom: 10px; }
+.hc-title { font-family: 'Fraunces', serif; font-weight: 700; font-size: 15px; color: var(--pine); margin-bottom: 4px; }
+.hc-sub { color: var(--fern); font-size: 12px; }
+.hc-pill { display: inline-block; margin-top: 10px; background: var(--mist); color: var(--moss); padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+@keyframes hcFloat { 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(-8px); } }
+
+/* ─── SECTION LABEL ──────────────────────────────────── */
+.section-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11.5px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--moss); margin-bottom: 12px;
+}
+.section-label::before { content: ''; width: 24px; height: 2px; background: var(--moss); border-radius: 2px; }
+
+/* ─── SECCIONES ──────────────────────────────────────── */
+#secciones { padding: 100px 5vw; background: var(--white); }
+.sec-header { max-width: 580px; margin-bottom: 60px; }
+.sec-header h2 { font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 700; line-height: 1.1; color: var(--ink); }
+.sec-header p { margin-top: 16px; color: #3a5c43; line-height: 1.7; }
+.sections-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+.sec-card { border-radius: 20px; overflow: hidden; border: 1px solid var(--border); transition: transform .25s, box-shadow .25s; cursor: pointer; position: relative; }
+.sec-card:hover { transform: translateY(-6px); box-shadow: 0 16px 48px rgba(15,30,20,.14); }
+.sec-card-img { height: 200px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+.sec-card-img img { width: 120px; height: 120px; object-fit: contain; }
+.sec-card-body { padding: 22px; }
+.sec-card-tag { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; opacity: .6; margin-bottom: 6px; }
+.sec-card-name { font-family: 'Fraunces', serif; font-size: 1.5rem; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+.sec-card-ages { display: inline-flex; align-items: center; gap: 6px; background: var(--mist); color: var(--fern); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 12px; }
+.sec-card-desc { font-size: 13.5px; color: #4a6651; line-height: 1.6; }
+.sec-card-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 16px; font-size: 13px; font-weight: 600; color: var(--moss); transition: gap .2s; }
+.sec-card:hover .sec-card-link { gap: 10px; }
+.sec-manada .sec-card-img { background: linear-gradient(135deg, #fff8e1, #ffe082); }
+.sec-tropa  .sec-card-img { background: linear-gradient(135deg, #e8f5e9, #a5d6a7); }
+.sec-comunidad .sec-card-img { background: linear-gradient(135deg, #e3f2fd, #90caf9); }
+.sec-clan   .sec-card-img { background: linear-gradient(135deg, #fce4ec, #f48fb1); }
+
+/* ─── GALERÍA ────────────────────────────────────────── */
+#galeria {
+  padding: 100px 0;
+  background: var(--ink);
+  overflow: hidden;
+}
+.galeria-header {
+  padding: 0 5vw 60px;
+}
+.galeria-header .section-label { color: var(--sage); }
+.galeria-header .section-label::before { background: var(--sage); }
+.galeria-header h2 { font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 700; color: var(--white); margin-bottom: 12px; }
+.galeria-header p { color: rgba(255,255,255,.55); max-width: 520px; line-height: 1.7; }
+
+/* Bloque por sección */
+.galeria-seccion {
+  padding: 0 5vw 70px;
+}
+.galeria-seccion:last-child { padding-bottom: 0; }
+.galeria-seccion-header {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 24px;
+}
+.galeria-seccion-dot {
+  width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+}
+.galeria-seccion-title {
+  font-family: 'Fraunces', serif; font-size: 1.5rem; font-weight: 700; color: var(--white);
+}
+.galeria-seccion-count {
+  font-size: 12px; color: rgba(255,255,255,.35); margin-left: auto;
+  font-weight: 500; letter-spacing: .5px;
+}
+
+/* Carrusel */
+.carousel-wrap {
+  position: relative;
+}
+.carousel {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  aspect-ratio: 16/9;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.08);
+}
+.carousel-track {
+  display: flex;
+  height: 100%;
+  transition: transform .5s cubic-bezier(.4,0,.2,1);
+  will-change: transform;
+}
+.carousel-slide {
+  min-width: 100%; height: 100%; position: relative; flex-shrink: 0;
+}
+.carousel-slide img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  user-select: none; -webkit-user-drag: none;
+}
+/* Placeholder cuando no hay imágenes */
+.carousel-placeholder {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255,255,255,.03) 0px,
+    rgba(255,255,255,.03) 10px,
+    transparent 10px,
+    transparent 20px
+  );
+}
+.carousel-placeholder-icon { font-size: 40px; opacity: .3; }
+.carousel-placeholder-text { font-size: 13px; color: rgba(255,255,255,.25); font-family: monospace; }
+
+/* Caption sobre la imagen */
+.carousel-caption {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 40px 24px 20px;
+  background: linear-gradient(transparent, rgba(0,0,0,.65));
+  color: var(--white); font-size: 13px; opacity: 0;
+  transition: opacity .3s;
+}
+.carousel:hover .carousel-caption { opacity: 1; }
+
+/* Botones prev/next */
+.carousel-btn {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(0,0,0,.5); border: 1px solid rgba(255,255,255,.2);
+  color: var(--white); font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s; z-index: 10; backdrop-filter: blur(4px);
+  opacity: 0;
+}
+.carousel-wrap:hover .carousel-btn { opacity: 1; }
+.carousel-btn:hover { background: rgba(0,0,0,.8); transform: translateY(-50%) scale(1.08); }
+.carousel-btn.prev { left: 14px; }
+.carousel-btn.next { right: 14px; }
+.carousel-btn:disabled { opacity: .2 !important; cursor: default; pointer-events: none; }
+
+/* Dots */
+.carousel-dots {
+  display: flex; justify-content: center; gap: 6px; margin-top: 14px;
+}
+.carousel-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(255,255,255,.25); border: none; cursor: pointer;
+  padding: 0; transition: all .25s;
+}
+.carousel-dot.active {
+  background: var(--sage); width: 20px; border-radius: 3px;
+}
+
+/* Contador de foto */
+.carousel-counter {
+  position: absolute; top: 14px; right: 14px; z-index: 10;
+  background: rgba(0,0,0,.5); color: rgba(255,255,255,.7);
+  font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px;
+  backdrop-filter: blur(4px); letter-spacing: .5px;
+}
+
+/* Loading skeleton */
+.carousel-loading {
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.08) 50%, rgba(255,255,255,.04) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* ─── MODAL ──────────────────────────────────────────── */
+#modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(15,30,20,.5); backdrop-filter: blur(6px);
+  align-items: center; justify-content: center; padding: 20px;
+}
+#modal-overlay.open { display: flex; }
+#modal {
+  background: var(--cream); border-radius: 24px;
+  width: min(90vw, 720px); max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 24px 80px rgba(15,30,20,.25);
+  animation: modalIn .3s ease;
+}
+@keyframes modalIn { from { opacity: 0; transform: scale(.95) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.modal-header { height: 200px; display: flex; align-items: center; justify-content: center; font-size: 80px; position: relative; border-radius: 24px 24px 0 0; }
+.modal-close { position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,.8); border: none; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+.modal-body { padding: 32px; }
+.modal-title { font-size: 2rem; font-weight: 700; color: var(--pine); margin-bottom: 4px; }
+.modal-subtitle { color: var(--fern); margin-bottom: 20px; font-size: 14px; }
+.modal-section-heading { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--moss); margin: 24px 0 12px; }
+.modal-desc { color: #3a5c43; line-height: 1.7; }
+.modal-cal { display: flex; flex-direction: column; gap: 10px; }
+.modal-event { display: flex; align-items: center; gap: 14px; background: var(--white); border-radius: 12px; padding: 12px 16px; border: 1px solid var(--border); }
+.modal-event-date { min-width: 44px; text-align: center; background: var(--mist); border-radius: 8px; padding: 6px; }
+.modal-event-day { font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 700; color: var(--pine); line-height: 1; }
+.modal-event-month { font-size: 10px; text-transform: uppercase; color: var(--moss); font-weight: 600; }
+.modal-event-name { font-weight: 600; font-size: 14px; }
+.modal-event-loc { font-size: 12px; color: var(--fern); }
+.modal-wabtn { display: inline-flex; align-items: center; gap: 10px; background: #25D366; color: #fff; padding: 12px 24px; border-radius: 30px; font-weight: 600; font-size: 14px; margin-top: 24px; transition: background .2s, transform .15s; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; }
+.modal-wabtn:hover { background: #1fba58; transform: translateY(-2px); }
+
+/* ─── CALENDARIO ─────────────────────────────────────── */
+#calendario { padding: 100px 5vw; background: var(--bark); }
+
+/* Tabla de calendario */
+.cal-table-wrap { margin-top: 48px; overflow-x: auto; border-radius: 20px; box-shadow: 0 4px 32px rgba(15,30,20,.10); }
+.cal-table { width: 100%; border-collapse: collapse; background: var(--white); border-radius: 20px; overflow: hidden; min-width: 680px; }
+
+/* Cabeceras de columna */
+.cal-table thead th {
+  padding: 14px 16px; font-size: 13px; font-weight: 700;
+  text-align: center; text-transform: uppercase; letter-spacing: .8px;
+  border-bottom: 3px solid rgba(0,0,0,.06);
+}
+.cal-th-dia    { background: #fef9e7; color: #7d6608; width: 110px; }
+.cal-th-manada { background: #fef3c7; color: #92400e; }
+.cal-th-tropa  { background: #dcfce7; color: #166534; }
+.cal-th-comunidad { background: #cffafe; color: #155e75; }
+.cal-th-clan   { background: #fee2e2; color: #991b1b; }
+.cal-th-grupo  { background: #ede9fe; color: #4c1d95; }
+
+/* Filas */
+.cal-table tbody tr { border-bottom: 1px solid rgba(0,0,0,.06); }
+.cal-table tbody tr:last-child { border-bottom: none; }
+.cal-table tbody tr:hover td { background: rgba(0,0,0,.015); }
+
+/* Celda de día */
+.cal-td-dia {
+  padding: 16px; text-align: center; font-family: 'Fraunces', serif;
+  font-weight: 700; font-size: 1rem; color: var(--pine);
+  background: #fef9e7; border-right: 2px solid rgba(0,0,0,.06);
+  white-space: nowrap; vertical-align: middle;
+}
+.cal-td-dia .cal-dia-num { font-size: 1.7rem; line-height: 1; }
+.cal-td-dia .cal-dia-mes { font-size: 10px; text-transform: uppercase; color: var(--moss); font-family: 'DM Sans', sans-serif; font-weight: 600; letter-spacing: 1px; margin-top: 2px; }
+.cal-td-dia .cal-dia-dow { font-size: 10px; color: #999; font-family: 'DM Sans', sans-serif; font-weight: 400; margin-top: 1px; }
+
+/* Celdas de sección */
+.cal-td-sec {
+  padding: 12px 14px; vertical-align: middle; text-align: center;
+}
+.cal-td-sec.empty { background: rgba(0,0,0,.015); }
+
+/* Píldora de actividad */
+.cal-pill {
+  display: inline-flex; flex-direction: column; align-items: center;
+  border-radius: 14px; padding: 10px 14px; font-size: 13px;
+  font-weight: 600; line-height: 1.35; width: 100%;
+  box-sizing: border-box;
+}
+.cal-pill-name { font-weight: 700; }
+.cal-pill-desc { font-size: 11px; font-weight: 400; opacity: .8; margin-top: 3px; }
+
+/* Colores por sección */
+.cal-pill-manada    { background: #fef3c7; color: #92400e; }
+.cal-pill-tropa     { background: #dcfce7; color: #166534; }
+.cal-pill-comunidad { background: #cffafe; color: #155e75; }
+.cal-pill-clan      { background: #fee2e2; color: #991b1b; }
+.cal-pill-grupo     { background: #ede9fe; color: #4c1d95; }
+
+/* Fila que abarca todo el grupo */
+.cal-td-span-grupo {
+  padding: 14px 20px; text-align: center;
+}
+.cal-pill-span {
+  display: block; border-radius: 14px; padding: 12px 20px;
+  background: linear-gradient(90deg, #ede9fe, #ddd6fe);
+  color: #4c1d95; font-weight: 700; font-size: 14px;
+}
+.cal-pill-span .cal-pill-desc { font-size: 12px; font-weight: 400; opacity: .75; margin-top: 4px; }
+
+/* ─── CONTACTO ───────────────────────────────────────── */
+#contacto { padding: 100px 5vw; background: var(--white); }
+.contact-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
+.contact-info h2 { font-size: clamp(1.8rem, 3.5vw, 2.5rem); font-weight: 700; line-height: 1.15; margin-bottom: 16px; }
+.contact-info p { color: #3a5c43; line-height: 1.7; max-width: 420px; }
+.contact-detail { display: flex; align-items: flex-start; gap: 14px; margin-top: 28px; }
+.contact-detail-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--mist); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.contact-detail-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--moss); margin-bottom: 4px; }
+.contact-detail-val { font-size: 14px; color: var(--ink); font-weight: 500; }
+
+/* ─── BOT ────────────────────────────────────────────── */
+.bot-card { background: var(--cream); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 4px 24px rgba(15,30,20,.07); }
+.bot-header { background: var(--pine); color: var(--white); padding: 18px 24px; display: flex; align-items: center; gap: 12px; }
+.bot-avatar { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; flex-shrink: 0;}
+.bot-name { font-weight: 700; font-size: 15px; }
+.bot-status { font-size: 11px; opacity: .6; }
+.bot-online { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #4ade80; margin-right: 5px; }
+.bot-chat { padding: 20px; display: flex; flex-direction: column; gap: 14px; min-height: 260px; }
+.bot-msg { background: var(--white); padding: 12px 16px; border-radius: 14px 14px 14px 4px; font-size: 13.5px; line-height: 1.5; color: var(--ink); border: 1px solid var(--border); max-width: 85%; animation: msgIn .3s ease; }
+@keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.bot-opts { display: flex; flex-direction: column; gap: 8px; max-width: 85%; animation: msgIn .3s ease .15s both; }
+.bot-opt { background: var(--white); border: 1px solid var(--moss); color: var(--moss); padding: 9px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s; text-align: center; font-family: 'DM Sans', sans-serif; }
+.bot-opt:hover { background: var(--moss); color: var(--white); }
+.bot-result { padding: 0 20px 20px; display: none; }
+.bot-result.show { display: block; }
+.bot-wa-btn { display: flex; align-items: center; justify-content: center; gap: 10px; background: #25D366; color: var(--white); padding: 14px 24px; border-radius: 30px; font-weight: 700; font-size: 14px; cursor: pointer; transition: background .2s, transform .15s; border: none; font-family: 'DM Sans', sans-serif; width: 100%; }
+.bot-wa-btn:hover { background: #1fba58; transform: translateY(-2px); }
+.bot-reset { background: none; border: none; color: var(--fern); font-size: 12px; cursor: pointer; margin-top: 10px; font-family: 'DM Sans', sans-serif; display: block; margin-left: auto; margin-right: auto; }
+
+/* ─── UBICACION ──────────────────────────────────────── */
+#ubicacion { padding: 100px 5vw; background: var(--pine); color: var(--white); }
+#ubicacion .section-label { color: var(--sage); }
+#ubicacion .section-label::before { background: var(--sage); }
+#ubicacion h2 { font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 700; color: var(--white); margin-bottom: 12px; }
+#ubicacion p { color: rgba(255,255,255,.65); max-width: 520px; line-height: 1.7; }
+.map-wrap { margin-top: 48px; display: grid; grid-template-columns: 1fr 340px; gap: 32px; align-items: start; }
+.map-container { border-radius: 20px; overflow: hidden; height: 340px; border: 1px solid rgba(255,255,255,.15); position: relative; box-shadow: 0 8px 40px rgba(0,0,0,.3); }
+.map-container iframe { width: 100%; height: 100%; border: 0; display: block; }
+.map-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+.map-btn { display: inline-flex; align-items: center; gap: 9px; padding: 12px 22px; border-radius: 50px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; border: none; text-decoration: none; transition: all .2s; }
+.map-btn-primary { background: var(--white); color: var(--pine); box-shadow: 0 4px 20px rgba(0,0,0,.25); }
+.map-btn-primary:hover { background: var(--mist); transform: translateY(-2px); box-shadow: 0 6px 28px rgba(0,0,0,.3); }
+.map-btn-outline { background: transparent; color: rgba(255,255,255,.85); border: 1.5px solid rgba(255,255,255,.3); }
+.map-btn-outline:hover { background: rgba(255,255,255,.1); transform: translateY(-2px); }
+.map-details { display: flex; flex-direction: column; gap: 20px; }
+.map-detail-item { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1); border-radius: 14px; padding: 20px; display: flex; gap: 14px; }
+.map-detail-icon { font-size: 24px; }
+.map-detail-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--sage); margin-bottom: 4px; }
+.map-detail-val { font-size: 14px; color: rgba(255,255,255,.85); }
+
+/* ─── FOOTER ─────────────────────────────────────────── */
+footer { background: var(--ink); color: rgba(255,255,255,.55); padding: 48px 5vw 32px; }
+.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; padding-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,.07); }
+.footer-brand p { font-size: 13px; line-height: 1.7; margin-top: 12px; max-width: 280px; }
+.footer-col h4 { font-family: 'Fraunces', serif; font-size: 14px; font-weight: 700; color: rgba(255,255,255,.85); margin-bottom: 14px; }
+.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.footer-col ul li a { font-size: 13px; transition: color .2s; }
+.footer-col ul li a:hover { color: var(--sage); }
+.footer-socials { display: flex; gap: 12px; margin-top: 20px; }
+.footer-social { width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,.08); display: flex; align-items: center; justify-content: center; font-size: 18px; transition: background .2s, transform .15s; }
+.footer-social:hover { background: var(--moss); transform: translateY(-2px); }
+.footer-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding-top: 24px; font-size: 12px; }
+.footer-bottom a { color: var(--sage); }
+
+/* ─── LIGHTBOX ───────────────────────────────────────── */
+#lightbox {
+  display: none; position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,.92); backdrop-filter: blur(8px);
+  align-items: center; justify-content: center;
+}
+#lightbox.open { display: flex; }
+#lightbox img {
+  max-width: 90vw; max-height: 90vh; object-fit: contain;
+  border-radius: 8px; box-shadow: 0 24px 80px rgba(0,0,0,.6);
+  animation: lightboxIn .25s ease;
+}
+@keyframes lightboxIn { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: scale(1); } }
+.lightbox-close {
+  position: absolute; top: 20px; right: 20px;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
+  color: var(--white); font-size: 20px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s;
+}
+.lightbox-close:hover { background: rgba(255,255,255,.25); }
+.lightbox-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 48px; height: 48px; border-radius: 50%;
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+  color: var(--white); font-size: 22px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s;
+}
+.lightbox-nav:hover { background: rgba(255,255,255,.2); }
+.lightbox-nav.lnav-prev { left: 20px; }
+.lightbox-nav.lnav-next { right: 20px; }
+.lightbox-caption {
+  position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+  color: rgba(255,255,255,.55); font-size: 12px; white-space: nowrap;
+}
+
+/* ─── ANIMATIONS ─────────────────────────────────────── */
+@keyframes slideDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideUp   { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes floatIn   { from { opacity: 0; transform: translateY(-50%) translateX(30px); } to { opacity: 1; transform: translateY(-50%) translateX(0); } }
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ─── MOBILE ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .nav-links { display: none; flex-direction: column; position: absolute; top: 68px; left: 0; right: 0; background: rgba(250,248,244,.97); backdrop-filter: blur(12px); padding: 20px 5vw; gap: 16px; border-bottom: 1px solid var(--border); }
+  .nav-links.open { display: flex; }
+  #nav-toggle { display: flex; }
+  .hero-visual { display: none; }
+  .contact-wrap { grid-template-columns: 1fr; }
+  .map-wrap { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+  .carousel-btn { opacity: 1 !important; width: 36px; height: 36px; font-size: 14px; }
+}
+@media (max-width: 600px) {
+  .footer-grid { grid-template-columns: 1fr; }
+  .hero-stats { gap: 28px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAVIGATION ──────────────────────────────────────── -->
+<nav id="nav">
+  <div class="nav-logo">
+    <div class="nav-logo-icon">
+      <img src="/static/images/grupo/logo_grupo.jpg" alt="Logo Grupo Scout 22" onerror="this.style.display='none'">
+    </div>
+    <div class="nav-logo-text">
+      Grupo Scout
+      <span>22 Quetzalcoalt · Aguascalientes</span>
+    </div>
+  </div>
+  <ul class="nav-links" id="nav-links">
+    <li><a href="#secciones">Secciones</a></li>
+    <li><a href="#galeria">Galería</a></li>
+    <li><a href="#calendario">Calendario de Actividades</a></li>
+    <li><a href="#contacto">Contacto</a></li>
+    <li><a href="/biblioteca" class="nav-bib">📖 Biblioteca</a></li>
+    <li><a href="/intranet" class="nav-cta">Intranet →</a></li>
+  </ul>
+  <button id="nav-toggle" onclick="document.getElementById('nav-links').classList.toggle('open')">☰</button>
+</nav>
+
+<!-- ── HERO ────────────────────────────────────────────── -->
+<section id="hero">
+  <!-- Slideshow de fondo: imágenes de /static/images/fondos_principales/ -->
+  <div class="hero-bg-imgs" id="hero-bg-imgs"></div>
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-badge">Scouts de México</div>
+    <h1 class="hero-title">
+      Forja tu<br>
+      <em>aventura.</em><br>
+      Deja tu huella.
+    </h1>
+    <p class="hero-desc">
+      Más de 100 años formando líderes a través de la naturaleza, el servicio y la comunidad.
+      Aquí empieza tu historia.
+    </p>
+    <div class="hero-actions">
+      <button class="btn-hero btn-hero-primary" onclick="document.getElementById('contacto').scrollTop">
+        🧭 ¡Únete a la Aventura!
+      </button>
+      <button class="btn-hero btn-hero-outline" onclick="smoothTo('secciones')">
+        Encuentra tu Sección →
+      </button>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="hero-stat-num">4</div>
+        <div class="hero-stat-label">Secciones activas</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">120+</div>
+        <div class="hero-stat-label">Scouts en activo</div>
+      </div>
+      <div>
+        <div class="hero-stat-num" id="anos-historia-stat"></div>
+        <div class="hero-stat-label">Años de historia</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SECCIONES ────────────────────────────────────────── -->
+<section id="secciones">
+  <div class="reveal">
+    <div class="sec-header">
+      <div class="section-label">Nuestras Secciones</div>
+      <h2>Un lugar para cada edad, un reto para cada momento</h2>
+      <p>Nuestro programa está diseñado por etapas de vida. Cada sección tiene su propio marco simbólico, sus retos y su espíritu.</p>
+    </div>
+    <div class="sections-grid">
+      <div class="sec-card sec-manada" onclick="openModal('manada')">
+        <div class="sec-card-img"><img src="./images/logos_seccion/manada.jpeg" alt="Manada"></div>
+        <div class="sec-card-body">
+          <div class="sec-card-name">Manada</div>
+          <div class="sec-card-ages">🎂 6 – 10 años</div>
+          <div class="sec-card-desc">El mundo mágico de la selva de Kipling. Los lobatos desarrollan la autoconfianza, la amistad y el juego en equipo.</div>
+          <div class="sec-card-link">Conocer más <span>→</span></div>
+        </div>
+      </div>
+      <div class="sec-card sec-tropa" onclick="openModal('tropa')">
+        <div class="sec-card-img"><img src="./images/logos_seccion/tropa.jpeg" alt="Tropa Scout Omeyocan"></div>
+        <div class="sec-card-body">
+          <div class="sec-card-name">Tropa Scout Omeyocan</div>
+          <div class="sec-card-ages">🎂 10 – 14 años</div>
+          <div class="sec-card-desc">Aventura, patrullas y el método scout clásico. Aquí los scouts aprenden supervivencia, liderazgo y servicio.</div>
+          <div class="sec-card-link">Conocer más <span>→</span></div>
+        </div>
+      </div>
+      <div class="sec-card sec-comunidad" onclick="openModal('comunidad')">
+        <div class="sec-card-img"><img src="./images/logos_seccion/comunidad.jpeg" alt="Comunidad"></div>
+        <div class="sec-card-body">
+          <div class="sec-card-name">Comunidad</div>
+          <div class="sec-card-ages">🎂 14 – 17 años</div>
+          <div class="sec-card-desc">El horizonte del mar los llama. Los rovers-en-formación desarrollan proyectos de servicio e identidad propia.</div>
+          <div class="sec-card-link">Conocer más <span>→</span></div>
+        </div>
+      </div>
+      <div class="sec-card sec-clan" onclick="openModal('clan')">
+        <div class="sec-card-img"><img src="./images/logos_seccion/clan.jpeg" alt="Clan Rover"></div>
+        <div class="sec-card-body">
+          <div class="sec-card-name">Clan Rover</div>
+          <div class="sec-card-ages">🎂 18 – 21 años</div>
+          <div class="sec-card-desc">El clan es la etapa de la misión y el servicio. Rovers comprometidos con la comunidad y el mundo.</div>
+          <div class="sec-card-link">Conocer más <span>→</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── MODAL ────────────────────────────────────────────── -->
+<div id="modal-overlay" onclick="closeModal(event)">
+  <div id="modal">
+    <div class="modal-header" id="modal-header">
+      <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('open')">✕</button>
+      <span id="modal-emoji" style="font-size:80px"></span>
+    </div>
+    <div class="modal-body">
+      <div class="modal-title" id="modal-title"></div>
+      <div class="modal-subtitle" id="modal-subtitle"></div>
+      <div class="modal-section-heading">Marco Simbólico</div>
+      <p class="modal-desc" id="modal-marco"></p>
+      <div class="modal-section-heading">Actividades recientes</div>
+      <div class="modal-cal" id="modal-cal"></div>
+      <button class="modal-wabtn" id="modal-wabtn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.999 2C6.477 2 2 6.484 2 12.017c0 1.99.591 3.842 1.6 5.385L2 22l4.744-1.568A9.953 9.953 0 0012 22c5.523 0 10-4.484 10-10.018C22 6.484 17.522 2 12 2z"/></svg>
+        Contactar al Jefe de Sección
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── GALERÍA ──────────────────────────────────────────── -->
+<section id="galeria">
+  <div class="galeria-header reveal-dark">
+    <div class="section-label">Nuestras Actividades</div>
+    <h2>Galería por sección</h2>
+    <p>Momentos reales de campamentos, reuniones y proyectos de servicio. Una foto a la vez.</p>
+  </div>
+
+  <div id="galeria-container">
+    <!-- Se construye dinámicamente desde JS -->
+    <div style="padding:0 5vw;color:rgba(255,255,255,.3);font-size:13px">Cargando imágenes…</div>
+  </div>
+</section>
+
+<!-- ── LIGHTBOX ─────────────────────────────────────────── -->
+<div id="lightbox" onclick="closeLightbox(event)">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <button class="lightbox-nav lnav-prev" id="lb-prev" onclick="lbNav(-1)">‹</button>
+  <img id="lb-img" src="" alt="">
+  <button class="lightbox-nav lnav-next" id="lb-next" onclick="lbNav(1)">›</button>
+  <div class="lightbox-caption" id="lb-caption"></div>
+</div>
+
+<!-- ── CALENDARIO ───────────────────────────────────────── -->
+<section id="calendario">
+  <div class="reveal">
+    <div class="section-label">Próximas Actividades</div>
+    <h2 style="font-size:clamp(2rem,4vw,2.8rem);font-weight:700;color:var(--ink);">Lo que viene en el grupo</h2>
+    <p style="color:#3a5c43;margin-top:12px;font-size:14px" id="cal-rango"></p>
+    <div class="cal-table-wrap">
+      <table class="cal-table" id="cal-grid">
+        <thead>
+          <tr>
+            <th class="cal-th-dia">Día</th>
+            <th class="cal-th-manada">🐺 Manada</th>
+            <th class="cal-th-tropa">⛺ Tropa</th>
+            <th class="cal-th-comunidad">🥾 Comunidad</th>
+            <th class="cal-th-clan">🔥 Clan</th>
+            <th class="cal-th-grupo">⚜️ Grupo</th>
+          </tr>
+        </thead>
+        <tbody id="cal-tbody">
+          <tr><td colspan="6" style="padding:40px;text-align:center;color:var(--fern);font-size:13px">Cargando actividades…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ── CONTACTO ─────────────────────────────────────────── -->
+<section id="contacto">
+  <div class="contact-wrap reveal">
+    <div class="contact-info">
+      <div class="section-label">Contacto</div>
+      <h2>¿Listo para unirte a la aventura?</h2>
+      <p>Cuéntanos qué edad tiene tu hijo o hija y te conectamos directamente con el jefe de sección correspondiente.</p>
+      <div class="contact-detail">
+        <div class="contact-detail-icon">📍</div>
+        <div>
+          <div class="contact-detail-label">Ubicación</div>
+          <div class="contact-detail-val">Av Canal Interceptor 91, Aguascalientes, Ags.</div>
+        </div>
+      </div>
+      <div class="contact-detail">
+        <div class="contact-detail-icon">📅</div>
+        <div>
+          <div class="contact-detail-label">Reuniones</div>
+          <div class="contact-detail-val">Sábados · 4pm a 6:30pm</div>
+        </div>
+      </div>
+      <div class="contact-detail">
+        <div class="contact-detail-icon">📧</div>
+        <div>
+          <div class="contact-detail-label">Correo</div>
+          <div class="contact-detail-val"><a href="/cdn-cgi/l/email-protection#b8dfcacdc8d7d9dfcdd1d4d98a8af8cbdbd7cdcccb96d5c0"><span class="__cf_email__" data-cfemail="55322720253a3432203c393467671526363a2021267b382d">[email&#160;protected]</span></a></div>
+        </div>
+      </div>
+    </div>
+    <div class="bot-card">
+      <div class="bot-header">
+        <div class="bot-avatar">
+          <img src="/static/images/grupo/quetzi.jpg" alt="Quetzi" 
+            style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
+        </div>
+        <div>
+          <div class="bot-name">Quetzi</div>
+          <div class="bot-status"><span class="bot-online"></span>En línea ahora</div>
+        </div>
+      </div>
+      <div class="bot-chat" id="bot-chat">
+        <div class="bot-msg">¡Hola! 👋 Soy Quetzi el guardian del <strong>Grupo Scout 22 Quetzalcoalt</strong>. ¿Para qué rango de edad buscas información?</div>
+        <div class="bot-opts" id="bot-opts">
+          <button class="bot-opt" onclick="botSelect('manada')">🐺 Manada · 6 a 10 años</button>
+          <button class="bot-opt" onclick="botSelect('tropa')">⛺ Tropa Scout Omeyocan· 10 a 14 años</button>
+          <button class="bot-opt" onclick="botSelect('comunidad')">🥾 Comunidad · 14 a 17 años</button>
+          <button class="bot-opt" onclick="botSelect('clan')">🔥 Clan Rover · 17 a 21 años</button>
+          <button class="bot-opt" onclick="botSelect('jefeGrupo')">⚜️ Jefe de Grupo · Administración</button>
+        </div>
+      </div>
+      <div class="bot-result" id="bot-result">
+        <button class="bot-wa-btn" id="bot-wa-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.999 2C6.477 2 2 6.484 2 12.017c0 1.99.591 3.842 1.6 5.385L2 22l4.744-1.568A9.953 9.953 0 0012 22c5.523 0 10-4.484 10-10.018C22 6.484 17.522 2 12 2z"/></svg>
+          <span id="bot-wa-label">Abrir chat con el Jefe</span>
+        </button>
+        <button class="bot-reset" onclick="botReset()">← Cambiar selección</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── UBICACION ────────────────────────────────────────── -->
+<section id="ubicacion">
+  <div class="reveal">
+    <div class="section-label">Cómo Llegarnos</div>
+    <h2>Nuestro local de grupo</h2>
+    <p>Nos reunimos todos los sábados en nuestro local de grupo. ¡Familias bienvenidas la primera visita!</p>
+    <div class="map-wrap">
+      <div>
+        <div class="map-container">
+          <iframe
+            src="https://maps.google.com/maps?q=Av+Canal+Interceptor+91,+San+Cayetano,+20130+Aguascalientes,+Ags,+Mexico&t=&z=16&ie=UTF8&iwloc=&output=embed"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            title="Ubicación del Grupo Scout 22 Quetzalcoalt">
+          </iframe>
+        </div>
+        <div class="map-cta">
+          <a class="map-btn map-btn-primary"
+             href="https://www.google.com/maps/dir/?api=1&destination=Av+Canal+Interceptor+91,+San+Cayetano,+20130+Aguascalientes,+Ags,+Mexico"
+             target="_blank" rel="noopener noreferrer">
+            🧭 Cómo llegar
+          </a>
+          <a class="map-btn map-btn-outline"
+             href="https://www.google.com/maps/search/?api=1&query=Av+Canal+Interceptor+91,+San+Cayetano,+20130+Aguascalientes,+Ags,+Mexico"
+             target="_blank" rel="noopener noreferrer">
+            📍 Ver en Google Maps
+          </a>
+        </div>
+      </div>
+      <div class="map-details">
+        <div class="map-detail-item">
+          <div class="map-detail-icon">🏫</div>
+          <div>
+            <div class="map-detail-label">Local de Grupo</div>
+            <div class="map-detail-val">Av Canal Interceptor 91<br>San Cayetano, 20130 Aguascalientes, Ags.</div>
+          </div>
+        </div>
+        <div class="map-detail-item">
+          <div class="map-detail-icon">🕘</div>
+          <div>
+            <div class="map-detail-label">Horario</div>
+            <div class="map-detail-val">Sábados · 4pm a 6:30pm</div>
+          </div>
+        </div>
+        <div class="map-detail-item">
+          <div class="map-detail-icon">🚌</div>
+          <div>
+            <div class="map-detail-label">Acceso</div>
+            <div class="map-detail-val">Rutas: 4, 11, 15, 19, 28, 30, 33, 38 y 40 · Estacionamiento disponible</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ───────────────────────────────────────────── -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="nav-logo">
+        <div class="nav-logo-text" style="color:rgba(255,255,255,.85)">
+          Grupo Scout 22
+          <span style="color:rgba(255,255,255,.4)">Quetzalcoalt · Aguascalientes</span>
+        </div>
+      </div>
+      <div class="hero-stat-num" id="anos-historia-stat"></div>
+      <p>Formando ciudadanos comprometidos desde hace más de <span id="anos-historia-texto"></span> años.</p>
+      <div class="footer-socials">
+        <a class="footer-social" href="#" title="Facebook">📘</a>
+        <a class="footer-social" href="#" title="Instagram">📸</a>
+        <a class="footer-social" href="#" title="YouTube">📺</a>
+        <a class="footer-social" href="#" title="WhatsApp">💬</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Secciones</h4>
+      <ul>
+        <li><a href="#secciones">Manada (7–10)</a></li>
+        <li><a href="#secciones">Tropa (11–15)</a></li>
+        <li><a href="#secciones">Comunidad (15–17)</a></li>
+        <li><a href="#secciones">Clan Rover (18–21)</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Grupo</h4>
+      <ul>
+        <li><a href="#galeria">Galería</a></li>
+        <li><a href="#calendario">Calendario</a></li>
+        <li><a href="#ubicacion">Ubicación</a></li>
+        <li><a href="/biblioteca">Biblioteca →</a></li>
+        <li><a href="/intranet">Intranet Scouter →</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <ul>
+        <li><a href="#">Aviso de Privacidad</a></li>
+        <li><a href="#">Política de Datos</a></li>
+        <li><a href="#">Reglamento Interno</a></li>
+        <li><a href="#">Scouts de México</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Grupo Scout 22 Quetzalcoalt — Todos los derechos reservados.</span>
+    <span>Provincia Aguascalientes · <a href="#">Scouts de México A.C.</a></span>
+  </div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+/* ══════════════════════════════════════════════════
+   CONFIGURACIÓN DE SECCIONES
+══════════════════════════════════════════════════ */
+const SECCIONES_CONFIG = [
+  { key: 'manada',    label: 'Manada',      emoji: '🐺', color: '#f4a261' },
+  { key: 'tropa',     label: 'Tropa Scout Omeyocan', emoji: '⛺', color: '#2d6a4f' },
+  { key: 'comunidad', label: 'Comunidad',   emoji: '🥾', color: '#457b9d' },
+  { key: 'clan',      label: 'Clan Rover',  emoji: '🔥', color: '#9b2226' },
+  
+];
+
+/* Estado global de carruseles */
+const carousels = {}; // { key: { images, idx, autoTimer } }
+
+/* ══════════════════════════════════════════════════
+   GALERÍA — CARGA Y RENDER
+══════════════════════════════════════════════════ */
+async function initGaleria() {
+  const container = document.getElementById('galeria-container');
+  container.innerHTML = '';
+
+  for (const sec of SECCIONES_CONFIG) {
+    let images = [];
+    try {
+      const res = await fetch(`/api/imagenes/${sec.key}`);
+      if (res.ok) {
+        const data = await res.json();
+        images = data.imagenes || [];
+      }
+    } catch (_) { /* servidor no disponible — mostrar placeholder */ }
+
+    const block = buildGaleriaBlock(sec, images);
+    container.appendChild(block);
+
+    carousels[sec.key] = { images, idx: 0, autoTimer: null };
+    if (images.length > 1) startAuto(sec.key);
+  }
+}
+
+function buildGaleriaBlock(sec, images) {
+  const wrap = document.createElement('div');
+  wrap.className = 'galeria-seccion';
+  wrap.innerHTML = `
+    <div class="galeria-seccion-header">
+      <div class="galeria-seccion-dot" style="background:${sec.color}"></div>
+      <div class="galeria-seccion-title">${sec.label}</div>
+      <div class="galeria-seccion-count">${images.length} foto${images.length !== 1 ? 's' : ''}</div>
+    </div>
+    <div class="carousel-wrap" id="cwrap-${sec.key}">
+      <div class="carousel" id="car-${sec.key}">
+        ${buildCarouselInner(sec, images)}
+        ${images.length > 0 ? `<div class="carousel-counter" id="counter-${sec.key}">1 / ${images.length}</div>` : ''}
+      </div>
+      ${images.length > 1 ? `
+        <button class="carousel-btn prev" onclick="carMove('${sec.key}',-1)" title="Anterior">‹</button>
+        <button class="carousel-btn next" onclick="carMove('${sec.key}',1)" title="Siguiente">›</button>
+        <div class="carousel-dots" id="dots-${sec.key}">
+          ${images.map((_,i) => `<button class="carousel-dot ${i===0?'active':''}" onclick="carGoTo('${sec.key}',${i})"></button>`).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `;
+  return wrap;
+}
+
+function buildCarouselInner(sec, images) {
+  if (!images.length) {
+    return `<div class="carousel-placeholder">
+      <div class="carousel-placeholder-icon">📷</div>
+      <div class="carousel-placeholder-text">// fotos de ${sec.label.toLowerCase()} aquí</div>
+    </div>`;
+  }
+  return `<div class="carousel-track" id="track-${sec.key}">
+    ${images.map((img, i) => `
+      <div class="carousel-slide" onclick="openLightbox('${sec.key}',${i})">
+        <img
+          src="${img.url}"
+          alt="${img.nombre || sec.label + ' ' + (i+1)}"
+          loading="${i === 0 ? 'eager' : 'lazy'}"
+          onerror="this.parentElement.innerHTML='<div class=\\'carousel-placeholder\\'><div class=\\'carousel-placeholder-icon\\'>🖼️</div><div class=\\'carousel-placeholder-text\\'>imagen no encontrada</div></div>'"
+        >
+        <div class="carousel-caption">${img.nombre || ''}</div>
+      </div>`).join('')}
+  </div>`;
+}
+
+/* ══════════════════════════════════════════════════
+   CAROUSEL — NAVEGACIÓN
+══════════════════════════════════════════════════ */
+function carGoTo(key, idx) {
+  const c = carousels[key];
+  if (!c || !c.images.length) return;
+  c.idx = (idx + c.images.length) % c.images.length;
+
+  const track = document.getElementById(`track-${key}`);
+  if (track) track.style.transform = `translateX(-${c.idx * 100}%)`;
+
+  // Actualizar counter
+  const counter = document.getElementById(`counter-${key}`);
+  if (counter) counter.textContent = `${c.idx + 1} / ${c.images.length}`;
+
+  // Actualizar dots
+  const dotsEl = document.getElementById(`dots-${key}`);
+  if (dotsEl) {
+    dotsEl.querySelectorAll('.carousel-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === c.idx);
+    });
+  }
+
+  // Reiniciar auto-play
+  resetAuto(key);
+}
+
+function carMove(key, dir) {
+  const c = carousels[key];
+  if (!c) return;
+  carGoTo(key, c.idx + dir);
+}
+
+function startAuto(key) {
+  const c = carousels[key];
+  if (!c) return;
+  c.autoTimer = setInterval(() => carGoTo(key, c.idx + 1), 5000);
+}
+
+function resetAuto(key) {
+  const c = carousels[key];
+  if (!c) return;
+  clearInterval(c.autoTimer);
+  if (c.images.length > 1) c.autoTimer = setInterval(() => carGoTo(key, c.idx + 1), 5000);
+}
+
+/* ══════════════════════════════════════════════════
+   LIGHTBOX
+══════════════════════════════════════════════════ */
+let lb = { key: null, idx: 0 };
+
+function openLightbox(key, idx) {
+  const c = carousels[key];
+  if (!c || !c.images.length) return;
+  lb = { key, idx };
+  updateLightbox();
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function updateLightbox() {
+  const c = carousels[lb.key];
+  const img = c.images[lb.idx];
+  document.getElementById('lb-img').src = img.url;
+  document.getElementById('lb-caption').textContent =
+    `${img.nombre || ''} — ${lb.idx + 1} / ${c.images.length}`;
+  document.getElementById('lb-prev').style.display = c.images.length <= 1 ? 'none' : '';
+  document.getElementById('lb-next').style.display = c.images.length <= 1 ? 'none' : '';
+}
+
+function lbNav(dir) {
+  const c = carousels[lb.key];
+  lb.idx = (lb.idx + dir + c.images.length) % c.images.length;
+  updateLightbox();
+}
+
+function closeLightbox(e) {
+  if (e && e.target !== document.getElementById('lightbox') && !e.target.classList.contains('lightbox-close')) return;
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* Teclado para lightbox y carruseles */
+document.addEventListener('keydown', e => {
+  if (document.getElementById('lightbox').classList.contains('open')) {
+    if (e.key === 'ArrowLeft')  lbNav(-1);
+    if (e.key === 'ArrowRight') lbNav(1);
+    if (e.key === 'Escape')     closeLightbox({target: document.getElementById('lightbox')});
+  }
+});
+
+/* Touch swipe en carruseles */
+function addSwipe(el, key) {
+  let startX = null;
+  el.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+  el.addEventListener('touchend', e => {
+    if (startX === null) return;
+    const dx = e.changedTouches[0].clientX - startX;
+    if (Math.abs(dx) > 40) carMove(key, dx < 0 ? 1 : -1);
+    startX = null;
+  }, { passive: true });
+}
+
+/* ══════════════════════════════════════════════════
+   NAV / SCROLL
+══════════════════════════════════════════════════ */
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 30);
+});
+
+function smoothTo(id) {
+  const el = document.getElementById(id);
+  if (el) window.scrollTo({ top: el.offsetTop - 68, behavior: 'smooth' });
+}
+
+/* Reveal on scroll */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+/* ══════════════════════════════════════════════════
+   MODAL DATA
+══════════════════════════════════════════════════ */
+const MESES_CORTO = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+const SECTIONS = {
+  manada: {
+    emoji: '🐺', title: 'Manada',
+    subtitle: '6 a 10 años',
+    bg: 'linear-gradient(135deg,#fff8e1,#ffe082)',
+    marco: 'Inspirada en "El Libro de la Selva" de Rudyard Kipling. Los lobatos viven en la Manada guiada por Akela. Aprenden autoconfianza, amistad y los primeros pasos del método scout a través del juego simbólico.',
+    // seccionNombre debe coincidir exactamente con el campo `seccion` en la BD
+    seccionNombre: 'Manada',
+    telefono: '4491042963', jefe: 'Akela',
+    msg: 'Hola! Me interesa información sobre la Manada (6-10 años).'
+  },
+  tropa: {
+    emoji: '⛺', title: 'Tropa Scout Omeyocan',
+    subtitle: '10 a 14 años',
+    bg: 'linear-gradient(135deg,#e8f5e9,#a5d6a7)',
+    marco: 'El corazón del escultismo clásico. Las patrullas de 6–8 scouts aprenden técnicas de campo, orientación, primeros auxilios y liderazgo democrático bajo la guía del Guía Mayor.',
+    seccionNombre: 'Tropa',
+    telefono: '4491951715', jefe: 'Scouter Nancy',
+    msg: 'Hola! Me interesa información sobre la Tropa Scout (10-14 años).'
+  },
+  comunidad: {
+    emoji: '🥾', title: 'Comunidad',
+    subtitle: '14 a 17 años',
+    bg: 'linear-gradient(135deg,#e3f2fd,#90caf9)',
+    marco: 'La etapa del mar y el horizonte. Los scouts desarrollan proyectos propios de servicio social, exploran su identidad y preparan su transición hacia el Clan.',
+    seccionNombre: 'Comunidad',
+    telefono: '4492637454', jefe: 'Scouter Montse',
+    msg: 'Hola! Me interesa información sobre la Comunidad (14-17 años).'
+  },
+  clan: {
+    emoji: '🔥', title: 'Clan Rover',
+    subtitle: '18 a 21 años',
+    bg: 'linear-gradient(135deg,#fce4ec,#f48fb1)',
+    marco: 'La cumbre del método scout. Los rovers son adultos jóvenes comprometidos con el servicio, la aventura y el crecimiento. El clan gestiona sus propios proyectos y rutas de alto impacto.',
+    seccionNombre: 'Clan',
+    telefono: ' 4492312365', jefe: 'Consejero Neto',
+    msg: 'Hola! Me interesa información sobre el Clan Rover (18-21 años).'
+  },
+  jefeGrupo: {
+    emoji:    '⚜️',
+    title:    'Administración de Grupo',
+    subtitle: 'Administración · Grupo Scout 22',
+    bg:       'linear-gradient(135deg,#1b4332,#2d6a4f)',
+    marco:    'La Jefatura coordina todas las secciones del grupo, gestiona el registro y atiende dudas generales sobre inscripciones, actividades y administración.',
+    seccionNombre: null,
+    telefono: '4498040164',
+    jefe:     'Chucho',
+    msg:      'Hola! Me interesa información general sobre el Grupo Scout 22 Quetzalcoalt.'
+  }
+};
+
+/* Renderiza las actividades en el modal-cal */
+function renderModalActividades(acts) {
+  const cal = document.getElementById('modal-cal');
+  if (!acts || !acts.length) {
+    cal.innerHTML = `<div style="padding:16px;text-align:center;color:var(--fern);font-size:13px;opacity:.7">
+      Sin actividades próximas programadas.<br>
+      <span style="font-size:11px;opacity:.6">Consulta la intranet para más información.</span>
+    </div>`;
+    return;
+  }
+  cal.innerHTML = acts.map(a => {
+    const d   = new Date(a.fecha + 'T12:00:00');
+    const dia = String(d.getDate()).padStart(2, '0');
+    const mes = MESES_CORTO[d.getMonth()];
+    const lugar = a.lugar ? `📍 ${a.lugar}` : '';
+    const esGrupo = a.seccion === 'Todo el Grupo';
+    return `<div class="modal-event">
+      <div class="modal-event-date">
+        <div class="modal-event-day">${dia}</div>
+        <div class="modal-event-month">${mes}</div>
+      </div>
+      <div>
+        <div class="modal-event-name">${a.titulo}${esGrupo ? ' <span style="font-size:10px;opacity:.5;font-weight:400">(Todo el Grupo)</span>' : ''}</div>
+        ${lugar ? `<div class="modal-event-loc">${lugar}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function openModal(sec) {
+  const d = SECTIONS[sec];
+  document.getElementById('modal-emoji').textContent = d.emoji;
+  document.getElementById('modal-header').style.background = d.bg;
+  document.getElementById('modal-title').textContent = d.title;
+  document.getElementById('modal-subtitle').textContent = d.subtitle;
+  document.getElementById('modal-marco').textContent = d.marco;
+
+  // Mostrar loading mientras se cargan actividades
+  document.getElementById('modal-cal').innerHTML =
+    `<div style="padding:16px;text-align:center;color:var(--fern);font-size:13px;opacity:.6">Cargando actividades…</div>`;
+
+  const waUrl = `https://wa.me/52${d.telefono}?text=${encodeURIComponent(d.msg)}`;
+  document.getElementById('modal-wabtn').onclick = () => window.open(waUrl, '_blank');
+  document.getElementById('modal-overlay').classList.add('open');
+
+  // Cargar actividades reales de la BD
+  try {
+    const url = d.seccionNombre
+      ? `/api/calendario/proximas_seccion?nombre=${encodeURIComponent(d.seccionNombre)}`
+      : `/api/calendario/proximas_seccion`;
+    const res  = await fetch(url + '&_=' + Date.now());
+    const acts = res.ok ? await res.json() : [];
+    renderModalActividades(acts);
+  } catch (_) {
+    renderModalActividades([]);
+  }
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay'))
+    document.getElementById('modal-overlay').classList.remove('open');
+}
+
+/* ══════════════════════════════════════════════════
+   BOT
+══════════════════════════════════════════════════ */
+function botSelect(sec) {
+  const d = SECTIONS[sec];
+  document.getElementById('bot-opts').innerHTML =
+    `<div class="bot-msg">¡Perfecto! 🎉 Te conecto con <strong>${d.jefe}</strong>, Jefe de <strong>${d.title}</strong>.</div>`;
+  const waUrl = `https://wa.me/52${d.telefono}?text=${encodeURIComponent(d.msg)}`;
+  document.getElementById('bot-wa-label').textContent = `Chatear con ${d.jefe}`;
+  document.getElementById('bot-wa-btn').onclick = () => window.open(waUrl, '_blank');
+  document.getElementById('bot-result').classList.add('show');
+}
+function botReset() {
+  document.getElementById('bot-result').classList.remove('show');
+  document.getElementById('bot-opts').innerHTML = `
+    <button class="bot-opt" onclick="botSelect('manada')">🐺 Manada · 6 a 10 años</button>
+    <button class="bot-opt" onclick="botSelect('tropa')">⛺ Tropa Scout · 10 a 14 años</button>
+    <button class="bot-opt" onclick="botSelect('comunidad')">🥾 Comunidad · 14 a 17 años</button>
+    <button class="bot-opt" onclick="botSelect('clan')">🔥 Clan Rover · 17 a 21 años</button>
+    <button class="bot-opt" onclick="botSelect('jefeGrupo')">⚜️ Jefe de Grupo · Administración</button>`;
+}
+
+/* ══════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════
+   CALENDARIO DINÁMICO
+══════════════════════════════════════════════════ */
+const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const DIAS_SEMANA = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+async function loadCalendario() {
+  const tbody = document.getElementById('cal-tbody');
+  const rango = document.getElementById('cal-rango');
+  try {
+    const res = await fetch('/api/calendario/proximas?_=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const acts = await res.json();
+
+    // Rango de fechas
+    const hoy   = new Date();
+    const hasta = new Date(hoy); hasta.setDate(hoy.getDate() + 30);
+    const fmt   = d => d.toLocaleDateString('es-MX', { day:'numeric', month:'long' });
+    if (rango) rango.textContent = `Del ${fmt(hoy)} al ${fmt(hasta)}`;
+
+    if (!acts.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="padding:48px;text-align:center;color:var(--fern);font-size:14px">
+        Sin actividades programadas para los próximos 30 días.<br>
+        <span style="font-size:12px;opacity:.6">Consulta la intranet para más información.</span>
+      </td></tr>`;
+      return;
+    }
+
+    // Normalizar sección → columna
+    function normalizaSec(s) {
+      if (!s) return 'grupo';
+      const l = s.toLowerCase();
+      if (l.includes('manada'))    return 'manada';
+      if (l.includes('tropa'))     return 'tropa';
+      if (l.includes('comunidad') || l.includes('caminante')) return 'comunidad';
+      if (l.includes('clan'))      return 'clan';
+      return 'grupo'; // "Todo el Grupo" y cualquier otro
+    }
+
+    // Agrupar por fecha
+    const byDate = {};
+    acts.forEach(a => {
+      if (!byDate[a.fecha]) byDate[a.fecha] = [];
+      byDate[a.fecha].push(a);
+    });
+
+    // Construir filas
+    const COLS = ['manada','tropa','comunidad','clan','grupo'];
+    let html = '';
+
+    Object.keys(byDate).sort().forEach(fecha => {
+      const eventos = byDate[fecha];
+      const d   = new Date(fecha + 'T12:00:00');
+      const dia = d.getDate();
+      const mes = MESES[d.getMonth()];
+      const dow = DIAS_SEMANA[d.getDay()];
+
+      // Clasificar eventos por columna
+      const cols = { manada:[], tropa:[], comunidad:[], clan:[], grupo:[] };
+      eventos.forEach(a => {
+        const col = normalizaSec(a.seccion);
+        cols[col].push(a);
+      });
+
+      // ¿Solo hay eventos de grupo y ninguna sección tiene algo?
+      const tieneSeccion = ['manada','tropa','comunidad','clan'].some(c => cols[c].length > 0);
+      const tieneGrupo   = cols.grupo.length > 0;
+
+      // Celda de día
+      const diaCell = `<td class="cal-td-dia">
+        <div class="cal-dia-num">${String(dia).padStart(2,'0')}</div>
+        <div class="cal-dia-mes">${mes}</div>
+        <div class="cal-dia-dow">${dow}</div>
+      </td>`;
+
+      if (!tieneSeccion && tieneGrupo) {
+        // Todos los eventos de grupo: span 5 columnas
+        const pillsHtml = cols.grupo.map(a => {
+          const desc = [a.descripcion, a.lugar ? `📍 ${a.lugar}` : '', a.hora ? `${a.hora} hrs` : ''].filter(Boolean).join(' · ');
+          return `<div class="cal-pill-span">
+            <div>${a.titulo}</div>
+            ${desc ? `<div class="cal-pill-desc">${desc}</div>` : ''}
+          </div>`;
+        }).join('');
+        html += `<tr>
+          ${diaCell}
+          <td class="cal-td-span-grupo" colspan="5">${pillsHtml}</td>
+        </tr>`;
+      } else {
+        // Fila normal con columnas por sección
+        let secCells = '';
+        COLS.forEach(col => {
+          if (cols[col].length === 0) {
+            secCells += `<td class="cal-td-sec empty"></td>`;
+          } else {
+            const pills = cols[col].map(a => {
+              const desc = [a.descripcion, a.lugar ? `📍 ${a.lugar}` : '', a.hora ? `${a.hora} hrs` : ''].filter(Boolean).join(' · ');
+              return `<div class="cal-pill cal-pill-${col}">
+                <span class="cal-pill-name">${a.titulo}</span>
+                ${desc ? `<span class="cal-pill-desc">${desc}</span>` : ''}
+              </div>`;
+            }).join('');
+            secCells += `<td class="cal-td-sec">${pills}</td>`;
+          }
+        });
+        html += `<tr>${diaCell}${secCells}</tr>`;
+      }
+    });
+
+    tbody.innerHTML = html;
+
+  } catch (_) {
+    document.getElementById('cal-tbody').innerHTML = `<tr><td colspan="6" style="padding:48px;text-align:center;color:var(--fern);font-size:13px;opacity:.6">
+      No se pudieron cargar las actividades.
+    </td></tr>`;
+  }
+}
+
+
+/*══════════════════════════════════════════════════
+    ACTUALIZACION AÑOS DE VIDA DEL GRUPO
+══════════════════════════════════════════════════*/
+function calcularAnosHistoria() {
+  const fundacion = new Date(2006, 1, 14);
+  const hoy = new Date();
+  let anos = hoy.getFullYear() - fundacion.getFullYear();
+  if (hoy < new Date(hoy.getFullYear(), 1, 14)) anos--;
+
+  const stat  = document.getElementById('anos-historia-stat');
+  const texto = document.getElementById('anos-historia-texto');
+  if (stat)  stat.textContent  = anos + '';
+  if (texto) texto.textContent = anos;
+}
+
+/* ══════════════════════════════════════════════════
+   STATS HERO DINÁMICOS
+══════════════════════════════════════════════════ */
+async function loadHeroStats() {
+  try {
+    const d = await fetch('/api/dashboard').then(r => r.json());
+    const nums = document.querySelectorAll('.hero-stat-num');
+    if (nums[0]) nums[0].textContent = d.total_secciones || '4';
+    if (nums[1]) nums[1].textContent = (d.total_miembros || '—') + (d.total_miembros ? '' : '');
+  } catch (_) { /* mantener valores por defecto */ }
+}
+
+/* ══════════════════════════════════════════════════
+   HERO BACKGROUND SLIDESHOW
+   Lee imágenes de /api/imagenes/fondos_principales
+   y hace un crossfade automático cada 6 segundos.
+══════════════════════════════════════════════════ */
+async function initHeroBg() {
+  const container = document.getElementById('hero-bg-imgs');
+  if (!container) return;
+
+  // Foto local como base — siempre disponible
+  const FALLBACK = ['/static/images/fondos_principales/foto1.jpg'];
+  let images = [...FALLBACK];
+
+  try {
+    const res = await fetch('/api/images/fondos_principales');
+    if (res.ok) {
+      const data = await res.json();
+      const apiImgs = (data.imagenes || []).map(i => i.url);
+      if (apiImgs.length) images = apiImgs; // si la API devuelve fotos, úsalas
+    }
+  } catch (_) { /* usar fallback */ }
+
+  // Crear un <div> por imagen
+  images.forEach((url, i) => {
+    const slide = document.createElement('div');
+    slide.className = 'hero-bg-slide' + (i === 0 ? ' active' : '');
+    slide.style.backgroundImage = `url('${url}')`;
+    container.appendChild(slide);
+  });
+
+  // Sin slideshow si solo hay una foto
+  if (images.length <= 1) return;
+
+  // Ciclo de crossfade cada 6 s
+  let current = 0;
+  const slides = container.querySelectorAll('.hero-bg-slide');
+  setInterval(() => {
+    slides[current].classList.remove('active');
+    current = (current + 1) % slides.length;
+    slides[current].classList.add('active');
+  }, 6000);
+}
+
+initGaleria().then(() => {
+  SECCIONES_CONFIG.forEach(sec => {
+    const el = document.getElementById(`car-${sec.key}`);
+    if (el) addSwipe(el, sec.key);
+  });
+});
+loadCalendario();
+loadHeroStats();
+initHeroBg();
+calcularAnosHistoria();
+</script>
+</body>
+</html>

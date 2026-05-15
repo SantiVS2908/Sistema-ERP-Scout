@@ -1,14 +1,13 @@
 import hashlib
 import logging
 import secrets
-import sqlite3
 import unicodedata
 from datetime import datetime, timedelta
 from typing import Optional
 import os
 from utils import get_db, now, uid
 from fastapi import Depends, Header, HTTPException
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials # ← ¡NUEVO!
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 # Logging interno
 log = logging.getLogger("scoutdb")
@@ -50,11 +49,12 @@ def hash_password(password: str, salt: str) -> str:
 def verify_password(password: str, salt: str, stored_hash: str) -> bool:
     return hash_password(password, salt) == stored_hash
 
-def create_session(con: sqlite3.Connection, usuario_id: str) -> str:
+def create_session(con, usuario_id: str) -> str:
     token = secrets.token_hex(32)
     expira = (datetime.now() + timedelta(hours=24)).isoformat()
-    con.execute("DELETE FROM sesiones WHERE usuario_id=? OR expira_en < ?", [usuario_id, now()])
-    con.execute("INSERT INTO sesiones VALUES (?,?,?,?)", [token, usuario_id, now(), expira])
+    with con.cursor() as cur:
+        cur.execute("DELETE FROM sesiones WHERE usuario_id=%s OR expira_en < %s", [usuario_id, now()])
+        cur.execute("INSERT INTO sesiones VALUES (%s,%s,%s,%s)", [token, usuario_id, now(), expira])
     return token
 
 # ── DEPENDENCIAS DE ACCESO (LOS CANDADOS) ──────────────────────────────────
@@ -63,20 +63,22 @@ security_scheme = HTTPBearer(auto_error=False)
 
 def get_current_user(
     auth: Optional[HTTPAuthorizationCredentials] = Depends(security_scheme),
-    con: sqlite3.Connection = Depends(get_db)  # Asegúrate de que get_db esté importado arriba
+    con = Depends(get_db)
 ) -> Optional[dict]:
     if not auth or auth.scheme != "Bearer":
         return None
     
     token = auth.credentials 
     
-    row = con.execute("""
-        SELECT u.id, u.email, u.username, u.nombre_completo,
-               u.rol, u.tipo, u.seccion_id, u.activo, u.debe_cambiar_pass
-        FROM   sesiones s
-        JOIN   usuarios u ON s.usuario_id = u.id
-        WHERE  s.token = ? AND s.expira_en > ? AND u.activo = 1
-    """, [token, now()]).fetchone()
+    with con.cursor() as cur:
+        cur.execute("""
+            SELECT u.id, u.email, u.username, u.nombre_completo,
+                   u.rol, u.tipo, u.seccion_id, u.activo, u.debe_cambiar_pass
+            FROM   sesiones s
+            JOIN   usuarios u ON s.usuario_id = u.id
+            WHERE  s.token = %s AND s.expira_en > %s AND u.activo = true
+        """, [token, now()])
+        row = cur.fetchone()
     
     if not row:
         return None
@@ -118,34 +120,40 @@ def can_manage_seccion(user: dict, seccion_id: Optional[str]) -> bool:
         return True
     return False
 
-def determinar_rol_scouter(con: sqlite3.Connection, seccion_id: Optional[str]) -> str:
+def determinar_rol_scouter(con, seccion_id: Optional[str]) -> str:
     if not seccion_id:
         return "colaborador"
-    jefe = con.execute("SELECT id FROM usuarios WHERE seccion_id=? AND rol='jefe_seccion' AND activo=1", [seccion_id]).fetchone()
+    with con.cursor() as cur:
+        cur.execute("SELECT id FROM usuarios WHERE seccion_id=%s AND rol='jefe_seccion' AND activo=true", [seccion_id])
+        jefe = cur.fetchone()
     return "subjefe_seccion" if jefe else "jefe_seccion"
 
-def crear_cuenta_scouter(con: sqlite3.Connection, nombre: str, apellido: str, seccion_id: Optional[str], mid: str) -> dict:
+def crear_cuenta_scouter(con, nombre: str, apellido: str, seccion_id: Optional[str], mid: str) -> dict:
     nombre_completo = f"{nombre} {apellido}"
     username = generate_username(nombre_completo)
     email    = f"{username}@{DOMAIN}"
 
-    suffix = 1
-    while con.execute("SELECT id FROM usuarios WHERE email=?", [email]).fetchone():
-        username = generate_username(nombre_completo) + str(suffix)
-        email    = f"{username}@{DOMAIN}"
-        suffix  += 1
+    with con.cursor() as cur:
+        suffix = 1
+        while True:
+            cur.execute("SELECT id FROM usuarios WHERE email=%s", [email])
+            if not cur.fetchone():
+                break
+            username = generate_username(nombre_completo) + str(suffix)
+            email    = f"{username}@{DOMAIN}"
+            suffix  += 1
 
-    rol  = determinar_rol_scouter(con, seccion_id)
-    salt = secrets.token_hex(16)
-    pw   = username
-    con.execute(
-        """INSERT INTO usuarios
-           (id, email, username, nombre_completo, password_hash, salt,
-            password_temporal, rol, tipo, seccion_id, miembro_id,
-            activo, debe_cambiar_pass, creado_en)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,1,1,?)""",
-        [uid(), email, username, nombre_completo, hash_password(pw, salt), salt,
-         pw, rol, "scouter", seccion_id, mid, now()],
-    )
+        rol  = determinar_rol_scouter(con, seccion_id)
+        salt = secrets.token_hex(16)
+        pw   = username
+        cur.execute(
+            """INSERT INTO usuarios
+               (id, email, username, nombre_completo, password_hash, salt,
+                password_temporal, rol, tipo, seccion_id, miembro_id,
+                activo, debe_cambiar_pass, creado_en)
+               VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,true,true,%s)""",
+            [uid(), email, username, nombre_completo, hash_password(pw, salt), salt,
+             pw, rol, "scouter", seccion_id, mid, now()],
+        )
     log.info("Cuenta scouter auto-creada: %s (%s)", email, rol)
     return {"email": email, "password_temporal": pw, "rol": rol, "username": username}

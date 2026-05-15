@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException, Header
-import sqlite3
 import secrets
 from typing import Optional
 
@@ -18,24 +17,31 @@ from security import verify_password, hash_password, create_session, require_aut
 
 
 @router.post("/login")
-def login(body: LoginIn, con: sqlite3.Connection = Depends(get_db)):
+def login(body: LoginIn, con = Depends(get_db)):
     email = body.email.strip().lower()
     if "@" not in email:
         email = f"{email}@{DOMAIN}"
 
-    row = con.execute(
-        "SELECT * FROM usuarios WHERE (email=? OR username=?) AND activo=1",
-        [email, body.email.strip()],
-    ).fetchone()
-    if not row:
+    with con.cursor() as cur:
+        cur.execute(
+            "SELECT * FROM usuarios WHERE (email=%s OR username=%s) AND activo=true",
+            [email, body.email.strip()],
+        )
+        u = cur.fetchone()
+        
+    if not u:
         raise HTTPException(401, "Credenciales inválidas.")
 
-    u = dict(row)
     if not verify_password(body.password, u["salt"], u["password_hash"]):
         raise HTTPException(401, "Credenciales inválidas.")
 
+    # Nota arquitectónica: create_session vive en security.py, 
+    # por lo que ese archivo también tendrá que ser refactorizado pronto.
     token = create_session(con, u["id"])
-    con.execute("UPDATE usuarios SET ultimo_login=? WHERE id=?", [now(), u["id"]])
+    
+    with con.cursor() as cur:
+        cur.execute("UPDATE usuarios SET ultimo_login=%s WHERE id=%s", [now(), u["id"]])
+        
     log.info("Login: %s (%s)", u["email"], u["rol"])
 
     return {
@@ -56,11 +62,12 @@ def login(body: LoginIn, con: sqlite3.Connection = Depends(get_db)):
 @router.post("/logout")
 def logout(
     authorization: Optional[str] = Header(None),
-    con: sqlite3.Connection = Depends(get_db),
+    con = Depends(get_db),
 ):
     if authorization and authorization.startswith("Bearer "):
         token = authorization[7:]
-        con.execute("DELETE FROM sesiones WHERE token=?", [token])
+        with con.cursor() as cur:
+            cur.execute("DELETE FROM sesiones WHERE token=%s", [token])
     return {"ok": True}
 
 
@@ -73,21 +80,26 @@ def me(user: dict = Depends(require_auth)):
 def cambiar_password(
     body:          CambiarPasswordIn,
     user:          dict = Depends(require_auth),
-    con:  sqlite3.Connection = Depends(get_db),
+    con = Depends(get_db),
 ):
-    row = con.execute(
-        "SELECT password_hash, salt FROM usuarios WHERE id=?", [user["id"]]
-    ).fetchone()
+    with con.cursor() as cur:
+        cur.execute(
+            "SELECT password_hash, salt FROM usuarios WHERE id=%s", [user["id"]]
+        )
+        row = cur.fetchone()
+        
     if not row or not verify_password(body.password_actual, row["salt"], row["password_hash"]):
         raise HTTPException(400, "La contraseña actual es incorrecta.")
     if len(body.password_nueva) < 6:
         raise HTTPException(400, "La nueva contraseña debe tener al menos 6 caracteres.")
     
     new_hash, new_salt = _make_hash(body.password_nueva)
-    con.execute(
-        "UPDATE usuarios SET password_hash=?, salt=?, debe_cambiar_pass=0, password_temporal=NULL WHERE id=?",
-        [new_hash, new_salt, user["id"]],
-    )
+    
+    with con.cursor() as cur:
+        cur.execute(
+            "UPDATE usuarios SET password_hash=%s, salt=%s, debe_cambiar_pass=false, password_temporal=NULL WHERE id=%s",
+            [new_hash, new_salt, user["id"]],
+        )
     return {"ok": True}
 
 

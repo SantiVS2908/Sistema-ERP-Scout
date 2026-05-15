@@ -1,11 +1,5 @@
-# Cache de Python
-__pycache__/
-*.pyc
-
-# Entornos virtuales
+node_modules/
 .venv/
-env/
-
-# Base de datos local
-*.db
-*.sqlite3
+dist/
+__pycache__/
+.env*

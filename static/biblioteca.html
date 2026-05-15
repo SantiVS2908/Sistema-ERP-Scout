@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biblioteca Scout — Grupo 22 Quetzalcoalt</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,700;0,900;1,300;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); overflow-x: hidden; }
+h1,h2,h3,h4 { font-family: 'Fraunces', serif; }
+a { text-decoration: none; color: inherit; }
+
+:root {
+  --ink:    #0f1e14;
+  --pine:   #1b4332;
+  --fern:   #2d6a4f;
+  --moss:   #40916c;
+  --sage:   #74b494;
+  --mist:   #d8f3dc;
+  --earth:  #8b5e3c;
+  --sun:    #e8a217;
+  --bark:   #f5ede4;
+  --cream:  #faf8f4;
+  --white:  #ffffff;
+  --border: rgba(27,67,50,.12);
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  opacity: .025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── NAV ── */
+#nav {
+  position: sticky; top: 0; z-index: 100;
+  height: 68px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 5vw;
+  background: rgba(250,248,244,.97); backdrop-filter: blur(12px);
+  box-shadow: 0 1px 0 var(--border), 0 4px 24px rgba(15,30,20,.06);
+}
+.nav-logo { display: flex; align-items: center; gap: 10px; }
+.nav-logo-icon { height: 44px; display: flex; align-items: center; }
+.nav-logo-icon img { height: 44px; width: auto; border-radius: 8px; object-fit: contain; }
+.nav-logo-text { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 700; color: var(--pine); line-height: 1.1; }
+.nav-logo-text span { display: block; font-size: 11px; font-family: 'DM Sans', sans-serif; font-weight: 400; color: var(--fern); opacity: .75; }
+.nav-right { display: flex; align-items: center; gap: 16px; }
+.nav-breadcrumb { font-size: 13px; color: var(--fern); opacity: .7; display: flex; align-items: center; gap: 6px; }
+.nav-breadcrumb strong { color: var(--pine); opacity: 1; }
+.nav-back { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--fern); background: var(--mist); padding: 8px 18px; border-radius: 30px; border: none; cursor: pointer; transition: background .2s; }
+.nav-back:hover { background: #c5ebd0; }
+
+/* ── HERO ── */
+.bib-hero { background: var(--pine); padding: 52px 5vw 0; position: relative; overflow: hidden; }
+.bib-hero::before { content: ''; position: absolute; inset: 0; opacity: .04; pointer-events: none; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.bib-hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,.1); color: var(--sage); padding: 5px 14px; border-radius: 30px; font-size: 11.5px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; margin-bottom: 18px; border: 1px solid rgba(116,180,148,.22); }
+.bib-hero h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; color: var(--white); line-height: 1.0; margin-bottom: 12px; }
+.bib-hero h1 em { font-style: italic; color: var(--sage); }
+.bib-hero p { font-size: 14px; color: rgba(255,255,255,.58); max-width: 500px; line-height: 1.7; }
+.bib-hero-stats { display: flex; gap: 36px; margin-top: 28px; flex-wrap: wrap; }
+.bib-stat-num { font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 700; color: var(--white); line-height: 1; }
+.bib-stat-label { font-size: 11px; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+
+/* TABS */
+.bib-tabs { 
+  display: flex; 
+  gap: 0; 
+  margin-top: 32px; 
+  border-bottom: 1px solid rgba(255,255,255,.1); 
+  overflow-x: auto; 
+  -webkit-overflow-scrolling: touch;
+}
+.bib-tab { 
+  padding: 11px 18px; 
+  font-size: 13px; 
+  font-weight: 600; 
+  color: rgba(255,255,255,.42); 
+  cursor: pointer; 
+  border: none; 
+  background: none; 
+  font-family: 'DM Sans', sans-serif; 
+  border-bottom: 2px solid transparent; 
+  transition: all .2s; 
+  white-space: nowrap; 
+  flex-shrink: 0;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.bib-tab.active { 
+  color: var(--white); 
+  border-bottom-color: var(--sage); 
+}
+.bib-tab:hover:not(.active) { 
+  color: rgba(255,255,255,.78); 
+}
+.bib-tab:active {
+  transform: scale(0.98);
+}
+
+/* SEARCH */
+.bib-search-bar { background: var(--white); border-bottom: 1px solid var(--border); padding: 14px 5vw; position: sticky; top: 68px; z-index: 90; box-shadow: 0 2px 12px rgba(15,30,20,.05); }
+.bib-search-inner { position: relative; max-width: 520px; }
+.bib-search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--sage); font-size: 16px; }
+.bib-search-input { width: 100%; padding: 11px 44px; border: 1.5px solid var(--border); border-radius: 30px; font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--ink); background: var(--cream); outline: none; transition: border-color .2s, box-shadow .2s; }
+.bib-search-input:focus { border-color: var(--moss); box-shadow: 0 0 0 3px rgba(64,145,108,.1); }
+.bib-search-clear { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 18px; cursor: pointer; color: var(--sage); line-height: 1; }
+
+/* CONTENT */
+.bib-content { padding: 32px 5vw 80px; }
+.rama-header { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.rama-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.rama-title { font-family: 'Fraunces', serif; font-size: 1.5rem; font-weight: 700; color: var(--ink); }
+.rama-ages { display: inline-flex; align-items: center; background: var(--mist); color: var(--fern); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.rama-count { margin-left: auto; font-size: 12px; color: var(--fern); background: var(--bark); padding: 4px 12px; border-radius: 20px; font-weight: 600; }
+
+/* GRID */
+.bib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 20px; }
+
+/* LIBRO CARD */
+.libro-card { background: var(--white); border-radius: 18px; border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: transform .22s, box-shadow .22s; display: flex; flex-direction: column; }
+.libro-card:hover { transform: translateY(-5px); box-shadow: 0 12px 36px rgba(15,30,20,.13); }
+.libro-cover { height: 140px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.libro-cover canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.libro-cover-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 44px; }
+.libro-cover-stripe { position: absolute; inset: 0; background: repeating-linear-gradient(45deg, rgba(255,255,255,.07) 0px, rgba(255,255,255,.07) 8px, transparent 8px, transparent 16px); }
+.libro-cover-loading { width: 100%; height: 100%; background: linear-gradient(90deg, rgba(0,0,0,.06) 25%, rgba(0,0,0,.1) 50%, rgba(0,0,0,.06) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+.libro-body { padding: 14px 13px 13px; flex: 1; display: flex; flex-direction: column; }
+.libro-title { font-family: 'Fraunces', serif; font-size: 13.5px; font-weight: 700; color: var(--ink); line-height: 1.3; margin-bottom: 5px; }
+.libro-filename { font-size: 10.5px; color: var(--sage); margin-bottom: 8px; font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.libro-btn { width: 100%; padding: 8px; background: var(--mist); color: var(--moss); border: none; border-radius: 9px; font-size: 12px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background .15s, color .15s; margin-top: auto; }
+.libro-btn:hover { background: var(--pine); color: var(--white); }
+
+/* FORMATOS LIST */
+.fmt-list { display: flex; flex-direction: column; gap: 10px; }
+.fmt-item { background: var(--white); border-radius: 15px; border: 1px solid var(--border); padding: 16px 20px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: transform .15s, box-shadow .15s; }
+.fmt-item:hover { transform: translateX(4px); box-shadow: 0 4px 24px rgba(15,30,20,.08); }
+.fmt-icon { width: 46px; height: 46px; border-radius: 12px; background: var(--mist); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+.fmt-name { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 700; color: var(--ink); }
+.fmt-filename { font-size: 11px; color: var(--sage); font-family: monospace; margin-top: 2px; }
+.fmt-actions { margin-left: auto; display: flex; gap: 8px; flex-shrink: 0; }
+.fmt-action { padding: 8px 16px; border-radius: 20px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; display: flex; align-items: center; gap: 5px; transition: all .15s; }
+.fmt-action-view { background: var(--mist); color: var(--moss); }
+.fmt-action-view:hover { background: #c5ebd0; color: var(--pine); }
+.fmt-action-dl { background: var(--bark); color: var(--earth); }
+.fmt-action-dl:hover { background: #ede0d7; }
+
+/* EMPTY / LOADING STATES */
+.bib-state { grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--fern); }
+.bib-state-icon { font-size: 36px; margin-bottom: 12px; }
+.bib-state p { font-size: 14px; line-height: 1.6; }
+.bib-loading-dots { display: inline-flex; gap: 6px; margin-top: 12px; }
+.bib-loading-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--moss); animation: dotPulse 1.2s ease-in-out infinite; }
+.bib-loading-dot:nth-child(2) { animation-delay: .2s; }
+.bib-loading-dot:nth-child(3) { animation-delay: .4s; }
+@keyframes dotPulse { 0%,80%,100%{opacity:.2;transform:scale(.8)} 40%{opacity:1;transform:scale(1)} }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(10,25,16,.72); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeOv .2s ease; }
+@keyframes fadeOv { from{opacity:0} to{opacity:1} }
+.modal-box { background: var(--cream); border-radius: 22px; width: min(92vw,720px); max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 32px 100px rgba(10,25,16,.45); animation: modalIn .25s ease; overflow: hidden; }
+@keyframes modalIn { from{opacity:0;transform:scale(.96) translateY(18px)} to{opacity:1;transform:scale(1) translateY(0)} }
+.modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 14px; flex-shrink: 0; }
+.modal-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--mist); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+.modal-title { font-family: 'Fraunces', serif; font-size: 1.15rem; font-weight: 700; color: var(--ink); line-height: 1.25; }
+.modal-meta { font-size: 12px; color: var(--fern); margin-top: 3px; font-family: monospace; }
+.modal-close { margin-left: auto; width: 34px; height: 34px; border-radius: 50%; background: var(--mist); border: none; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; color: var(--fern); flex-shrink: 0; transition: background .15s; }
+.modal-close:hover { background: #c5ebd0; }
+.modal-viewer { flex: 1; min-height: 0; height: 440px; background: #2a2d2b; }
+.modal-viewer iframe { width: 100%; height: 100%; border: none; display: block; }
+.modal-actions { padding: 14px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
+.btn-primary { padding: 10px 22px; background: var(--pine); color: var(--white); border: none; border-radius: 30px; font-size: 13px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: background .2s, transform .15s; }
+.btn-primary:hover { background: var(--fern); transform: translateY(-1px); }
+.btn-secondary { padding: 10px 22px; background: var(--mist); color: var(--fern); border: none; border-radius: 30px; font-size: 13px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: background .2s; }
+.btn-secondary:hover { background: #c5ebd0; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* DEBUG INDICATOR */
+.debug-indicator {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--pine);
+  color: var(--white);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+/* ══════════════════════════════════════════════════
+   CONFIGURACIÓN DE RAMAS
+══════════════════════════════════════════════════ */
+const RAMAS_CONFIG = [
+  { key: 'manada',       label: 'Manada',                emoji: '🐺', color: '#f4a261', colorBg: '#fff8e1', ages: '6–10 años' },
+  { key: 'tropa',        label: 'Tropa Scout',           emoji: '⛺', color: '#2d6a4f', colorBg: '#e8f5e9', ages: '10–14 años' },
+  { key: 'comunidad',    label: 'Comunidad',             emoji: '🥾', color: '#457b9d', colorBg: '#e3f2fd', ages: '14–17 años' },
+  { key: 'clan',         label: 'Clan Rover',            emoji: '🔥', color: '#9b2226', colorBg: '#fce4ec', ages: '18–21 años' },
+  { key: 'jefes',        label: 'Jefes / Scouters',      emoji: '⚜️', color: '#7b4f9e', colorBg: '#f3e5f5', ages: 'Adultos' },
+  { key: 'generales',    label: 'Acervo General',        emoji: '📚', color: '#2d6a4f', colorBg: '#d8f3dc', ages: 'Todo el grupo' },
+  { key: 'reglamentos',  label: 'Reglamentos Oficiales', emoji: '📋', color: '#555555', colorBg: '#f5f5f5', ages: 'Scouts de México' },
+];
+
+/* ── Portada PDF con PDF.js ── */
+function PDFCover({ url, colorBg, emoji }) {
+  const canvasRef = useRef(null);
+  const [status, setStatus] = useState('loading');
+
+  useEffect(() => {
+    let cancelled = false;
+    async function waitForPdfJs(timeout = 8000) {
+      const interval = 100;
+      let elapsed = 0;
+      while (!window['pdfjsLib'] && elapsed < timeout) {
+        await new Promise(r => setTimeout(r, interval));
+        elapsed += interval;
+      }
+      return window['pdfjsLib'] || null;
+    }
+    async function render() {
+      try {
+        const pdfjsLib = await waitForPdfJs();
+        if (!pdfjsLib) { 
+          console.error('❌ PDF.js no está disponible tras esperar');
+          setStatus('error'); 
+          return; 
+        }
+        
+        console.log('📄 Cargando PDF:', url);
+        const pdf = await pdfjsLib.getDocument(url).promise;
+        if (cancelled) return;
+        
+        const page = await pdf.getPage(1);
+        if (cancelled) return;
+        
+        const vp = page.getViewport({ scale: 1 });
+        const scale = 300 / vp.width;
+        const scaled = page.getViewport({ scale });
+        
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        
+        canvas.width = scaled.width;
+        canvas.height = scaled.height;
+        
+        await page.render({ 
+          canvasContext: canvas.getContext('2d'), 
+          viewport: scaled 
+        }).promise;
+        
+        if (!cancelled) {
+          setStatus('done');
+          console.log('✅ PDF cargado:', url);
+        }
+      } catch (err) {
+        console.error('❌ Error al cargar portada PDF:', url, err);
+        if (!cancelled) setStatus('error');
+      }
+    }
+    render();
+    return () => { cancelled = true; };
+  }, [url]);
+
+  if (status === 'loading') return <div className="libro-cover-loading"></div>;
+  if (status === 'error') return (
+    <div className="libro-cover-fallback" style={{ background: colorBg }}>
+      <div className="libro-cover-stripe"></div>
+      <span style={{ position: 'relative', zIndex: 1 }}>{emoji}</span>
+    </div>
+  );
+  return <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />;
+}
+
+/* ── Modal PDF ── */
+function PDFModal({ doc, emoji, colorBg, onClose }) {
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal-box">
+        <div className="modal-header">
+          <div className="modal-icon" style={{ background: colorBg }}>{emoji}</div>
+          <div>
+            <div className="modal-title">{doc.nombre}</div>
+            <div className="modal-meta">{doc.archivo}</div>
+          </div>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-viewer">
+          <iframe src={doc.url + '#toolbar=1&navpanes=0'} title={doc.nombre} />
+        </div>
+        <div className="modal-actions">
+          <a className="btn-primary" href={doc.url} download={doc.archivo}>
+            ⬇ Descargar PDF
+          </a>
+          <a className="btn-secondary" href={doc.url} target="_blank" rel="noopener noreferrer">
+            ↗ Nueva pestaña
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   HOOK: carga documentos desde la API
+══════════════════════════════════════════════════ */
+function useDocs(ramaKey) {
+  const [docs, setDocs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (!ramaKey) return;
+    let cancelled = false;
+    setLoading(true);
+    setError(false);
+    setDocs([]);
+    
+    console.log(`📚 Cargando documentos para: ${ramaKey}`);
+    
+    fetch(`/api/biblioteca/${ramaKey}`)
+      .then(r => {
+        if (!r.ok) {
+          console.error(`❌ Error HTTP ${r.status} al cargar ${ramaKey}`);
+          return Promise.reject(r.status);
+        }
+        return r.json();
+      })
+      .then(data => { 
+        if (!cancelled) { 
+          console.log(`✅ ${data.documentos.length} documentos cargados para ${ramaKey}:`, data.documentos);
+          setDocs(data.documentos || []); 
+          setLoading(false); 
+        } 
+      })
+      .catch(err => { 
+        console.error(`❌ Error al obtener documentos de ${ramaKey}:`, err);
+        if (!cancelled) { 
+          setError(true); 
+          setLoading(false); 
+        } 
+      });
+    return () => { cancelled = true; };
+  }, [ramaKey]);
+
+  return { docs, loading, error };
+}
+
+/* ══════════════════════════════════════════════════
+   TABS ARRAY
+══════════════════════════════════════════════════ */
+const TABS = [
+  ...RAMAS_CONFIG.map(r => ({ key: r.key, label: r.label })),
+  { key: 'formatos', label: 'Formatos' },
+];
+
+/* ══════════════════════════════════════════════════
+   COMPONENTE: Contenido de cada rama
+══════════════════════════════════════════════════ */
+function RamaContent({ ramaKey, ramaConfig }) {
+  const { docs, loading, error } = useDocs(ramaKey);
+  const [search, setSearch] = useState('');
+  const [openDoc, setOpenDoc] = useState(null);
+
+  const filtered = search.trim()
+    ? docs.filter(d => d.nombre.toLowerCase().includes(search.toLowerCase()) || d.archivo.toLowerCase().includes(search.toLowerCase()))
+    : docs;
+
+  const isFormatos = ramaKey === 'formatos';
+  const emoji = isFormatos ? '📑' : ramaConfig?.emoji || '📄';
+  const colorBg = isFormatos ? '#d8f3dc' : ramaConfig?.colorBg || '#d8f3dc';
+  const color = isFormatos ? '#2d6a4f' : ramaConfig?.color || '#2d6a4f';
+  const ages = isFormatos ? 'Grupo Scout 22' : ramaConfig?.ages || '';
+  const title = isFormatos ? 'Formatos del Grupo' : ramaConfig?.label || '';
+
+  console.log(`🎯 Renderizando RamaContent para: ${ramaKey} (${title})`);
+
+  return (
+    <>
+      {/* Search */}
+      <div className="bib-search-bar">
+        <div className="bib-search-inner">
+          <span className="bib-search-icon">🔍</span>
+          <input
+            className="bib-search-input"
+            placeholder={`Buscar en ${title}…`}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          {search && <button className="bib-search-clear" onClick={() => setSearch('')}>×</button>}
+        </div>
+      </div>
+
+      <div className="bib-content">
+        {/* Header de sección */}
+        <div className="rama-header">
+          <div className="rama-dot" style={{ background: color }}></div>
+          <div className="rama-title">{title}</div>
+          {ages && <div className="rama-ages">{ages}</div>}
+          {!loading && <div className="rama-count">{filtered.length} {filtered.length === 1 ? 'documento' : 'documentos'}</div>}
+        </div>
+
+        {/* Estado cargando */}
+        {loading && (
+          <div className="bib-state">
+            <div className="bib-loading-dots">
+              <div className="bib-loading-dot"></div>
+              <div className="bib-loading-dot"></div>
+              <div className="bib-loading-dot"></div>
+            </div>
+            <p style={{ marginTop: 12 }}>Cargando documentos…</p>
+          </div>
+        )}
+
+        {/* Estado error */}
+        {error && (
+          <div className="bib-state">
+            <div className="bib-state-icon">⚠️</div>
+            <p>No se pudo cargar la información.<br/>Verifica tu conexión e intenta nuevamente.</p>
+          </div>
+        )}
+
+        {/* Estado vacío (sin resultados) */}
+        {!loading && !error && filtered.length === 0 && docs.length === 0 && (
+          <div className="bib-state">
+            <div className="bib-state-icon">📭</div>
+            <p>No hay documentos disponibles en esta sección.</p>
+          </div>
+        )}
+
+        {/* Estado vacío (búsqueda sin resultados) */}
+        {!loading && !error && filtered.length === 0 && docs.length > 0 && (
+          <div className="bib-state">
+            <div className="bib-state-icon">🔍</div>
+            <p>No se encontraron documentos que coincidan con "<strong>{search}</strong>"</p>
+          </div>
+        )}
+
+        {/* Grid de documentos (no formatos) */}
+        {!loading && !error && !isFormatos && filtered.length > 0 && (
+          <div className="bib-grid">
+            {filtered.map(doc => (
+              <div key={doc.archivo} className="libro-card" onClick={() => setOpenDoc(doc)}>
+                <div className="libro-cover">
+                  <PDFCover url={doc.url} colorBg={colorBg} emoji={emoji} />
+                </div>
+                <div className="libro-body">
+                  <div className="libro-title">{doc.nombre}</div>
+                  <div className="libro-filename">{doc.archivo}</div>
+                  <button className="libro-btn" onClick={e => { e.stopPropagation(); setOpenDoc(doc); }}>
+                    Ver / Descargar →
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Lista de formatos */}
+        {!loading && !error && isFormatos && filtered.length > 0 && (
+          <div className="fmt-list">
+            {filtered.map(doc => (
+              <div key={doc.archivo} className="fmt-item" onClick={() => setOpenDoc(doc)}>
+                <div className="fmt-icon">📄</div>
+                <div>
+                  <div className="fmt-name">{doc.nombre}</div>
+                  <div className="fmt-filename">{doc.archivo}</div>
+                </div>
+                <div className="fmt-actions">
+                  <button className="fmt-action fmt-action-view" onClick={e => { e.stopPropagation(); setOpenDoc(doc); }}>
+                    👁 Ver
+                  </button>
+                  <a className="fmt-action fmt-action-dl" href={doc.url} download={doc.archivo} onClick={e => e.stopPropagation()}>
+                    ⬇ Descargar
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Modal */}
+      {openDoc && (
+        <PDFModal
+          doc={openDoc}
+          emoji={emoji}
+          colorBg={colorBg}
+          onClose={() => setOpenDoc(null)}
+        />
+      )}
+    </>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   COMPONENTE PRINCIPAL: App
+══════════════════════════════════════════════════ */
+function App() {
+  const [activeTab, setActiveTab] = useState('manada');
+  const [counts, setCounts] = useState({});
+
+  console.log('🚀 App renderizada. activeTab:', activeTab);
+
+  // Cargar conteos
+  useEffect(() => {
+    const keys = [...RAMAS_CONFIG.map(r => r.key), 'formatos'];
+    keys.forEach(key => {
+      fetch(`/api/biblioteca/${key}`)
+        .then(r => r.ok ? r.json() : { documentos: [] })
+        .then(data => setCounts(prev => ({ ...prev, [key]: (data.documentos || []).length })))
+        .catch(() => {});
+    });
+  }, []);
+
+  const handleTabClick = useCallback((key) => {
+    console.log(`🔄 Tab clickeado: ${key} (anterior: ${activeTab})`);
+    setActiveTab(key);
+    // Scroll to top cuando cambias de tab
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeTab]);
+
+  const totalDocs = Object.values(counts).reduce((s, n) => s + n, 0);
+  const totalFormatos = counts['formatos'] || 0;
+  const ramaConfig = RAMAS_CONFIG.find(r => r.key === activeTab);
+
+  return (
+    <>
+      {/* Debug indicator */}
+      <div className="debug-indicator">
+        Tab activo: {activeTab}
+      </div>
+
+      {/* NAV */}
+      <nav id="nav">
+        <div className="nav-logo">
+          <div className="nav-logo-icon">
+            <img src="/static/images/grupo/logo_grupo.jpg" alt="Logo" onError={e => e.currentTarget.style.display='none'} />
+          </div>
+          <div className="nav-logo-text">
+            Biblioteca Scout
+            <span>Grupo 22 Quetzalcoalt · Aguascalientes</span>
+          </div>
+        </div>
+        <div className="nav-right">
+          <span className="nav-breadcrumb">
+            <a href="/" style={{ color: 'var(--fern)' }}>Inicio</a>
+            <span style={{ opacity: .4 }}>›</span>
+            <strong>Biblioteca</strong>
+          </span>
+          <a className="nav-back" href="/">← Volver</a>
+        </div>
+      </nav>
+
+      {/* HERO */}
+      <div className="bib-hero">
+        <div className="bib-hero-badge">📖 Recursos educativos</div>
+        <h1>Acervo Scout &amp; <em>Formatos</em></h1>
+        <p>Literatura scout organizada por rama y formatos del grupo. Visualiza en línea o descarga cuando lo necesites.</p>
+        <div className="bib-hero-stats">
+          <div>
+            <div className="bib-stat-num">{totalDocs}</div>
+            <div className="bib-stat-label">Documentos</div>
+          </div>
+          <div>
+            <div className="bib-stat-num">{RAMAS_CONFIG.length}</div>
+            <div className="bib-stat-label">Ramas</div>
+          </div>
+          <div>
+            <div className="bib-stat-num">{totalFormatos}</div>
+            <div className="bib-stat-label">Formatos</div>
+          </div>
+        </div>
+
+        {/* TABS */}
+        <div className="bib-tabs">
+          {TABS.map(t => (
+            <button
+              key={t.key}
+              className={`bib-tab${activeTab === t.key ? ' active' : ''}`}
+              onClick={() => handleTabClick(t.key)}
+              type="button"
+            >
+              {t.key === 'formatos' ? '📑 ' : ''}{t.label}
+              {counts[t.key] !== undefined && counts[t.key] > 0 &&
+                <span style={{ marginLeft: 6, fontSize: 10, opacity: .6, fontWeight: 400 }}>({counts[t.key]})</span>
+              }
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Contenido dinámico por tab */}
+      <RamaContent key={activeTab} ramaKey={activeTab} ramaConfig={ramaConfig} />
+    </>
+  );
+}
+
+// Renderizar app
+console.log('🎬 Iniciando aplicación Biblioteca Scout');
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+
+<!-- PDF.js via ESM → expuesto globalmente para React/Babel -->
+<script type="module">
+  import * as pdfjsLib from 'https://unpkg.com/pdfjs-dist@4.4.168/build/pdf.min.mjs';
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://unpkg.com/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs';
+  window['pdfjsLib'] = pdfjsLib;
+  console.log('✅ PDF.js cargado correctamente');
+</script>
+</body>
+</html>

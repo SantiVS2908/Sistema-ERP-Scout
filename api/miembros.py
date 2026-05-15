@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException
-import sqlite3
 from typing import Optional
 from datetime import date
 
@@ -23,7 +22,7 @@ def listar_miembros(
     activo:     Optional[bool] = None,
     tipo:       Optional[str]  = None,
     q:          Optional[str]  = None,
-    con: sqlite3.Connection = Depends(get_db),
+    con = Depends(get_db),
 ):
     sql = """
         SELECT m.*, s.nombre AS seccion_nombre, s.color AS seccion_color
@@ -33,56 +32,71 @@ def listar_miembros(
     """
     params: list = []
     if seccion_id:
-        sql += " AND m.seccion_id=?";    params.append(seccion_id)
+        sql += " AND m.seccion_id=%s"
+        params.append(seccion_id)
     if activo is not None:
-        sql += " AND m.activo=?";        params.append(1 if activo else 0)
+        sql += " AND m.activo=%s"
+        params.append(activo)
     if tipo:
-        sql += " AND m.tipo=?";          params.append(tipo)
+        sql += " AND m.tipo=%s"
+        params.append(tipo)
     if q:
         like = f"%{q.lower()}%"
-        sql += (" AND (LOWER(m.nombre) LIKE ? OR LOWER(m.apellido) LIKE ? "
-                "OR LOWER(m.numero_scout) LIKE ?)")
+        sql += (" AND (LOWER(m.nombre) LIKE %s OR LOWER(m.apellido) LIKE %s "
+                "OR LOWER(m.numero_scout) LIKE %s)")
         params += [like, like, like]
     sql += " ORDER BY m.apellido, m.nombre"
-    return rows_to_dicts(con.execute(sql, params))
+    
+    with con.cursor() as cur:
+        cur.execute(sql, params)
+        return rows_to_dicts(cur)
 
 
 @router.get("/{mid}")
-def get_miembro(mid: str, con: sqlite3.Connection = Depends(get_db)):
-    rows = rows_to_dicts(con.execute("""
-        SELECT m.*, s.nombre AS seccion_nombre, s.color AS seccion_color
-        FROM   miembros m
-        LEFT JOIN secciones s ON m.seccion_id = s.id
-        WHERE  m.id=?
-    """, [mid]))
-    if not rows:
-        raise HTTPException(404, "Miembro no encontrado.")
+def get_miembro(mid: str, con = Depends(get_db)):
+    with con.cursor() as cur:
+        cur.execute("""
+            SELECT m.*, s.nombre AS seccion_nombre, s.color AS seccion_color
+            FROM   miembros m
+            LEFT JOIN secciones s ON m.seccion_id = s.id
+            WHERE  m.id=%s
+        """, [mid])
+        
+        rows = rows_to_dicts(cur)
+        if not rows:
+            raise HTTPException(404, "Miembro no encontrado.")
 
-    m = rows[0]
-    m["equipo"] = rows_to_dicts(con.execute(
-        "SELECT * FROM equipo_bolsillo WHERE miembro_id=? ORDER BY articulo", [mid]
-    ))
-    m["uniforme"] = rows_to_dicts(con.execute(
-        "SELECT * FROM uniformes WHERE miembro_id=? ORDER BY pieza", [mid]
-    ))
-    m["registro_anual"] = rows_to_dicts(con.execute(
-        "SELECT * FROM registro_anual WHERE miembro_id=? ORDER BY anio DESC", [mid]
-    ))
-    m["transferencias"] = rows_to_dicts(con.execute("""
-        SELECT t.*, so.nombre AS origen_nombre, sd.nombre AS destino_nombre
-        FROM   transferencias t
-        LEFT JOIN secciones so ON t.seccion_origen_id  = so.id
-        LEFT JOIN secciones sd ON t.seccion_destino_id = sd.id
-        WHERE  t.miembro_id=?
-        ORDER  BY t.fecha DESC
-    """, [mid]))
+        m = rows[0]
+        
+        cur.execute("SELECT * FROM equipo_bolsillo WHERE miembro_id=%s ORDER BY articulo", [mid])
+        m["equipo"] = rows_to_dicts(cur)
+        
+        cur.execute("SELECT * FROM uniformes WHERE miembro_id=%s ORDER BY pieza", [mid])
+        m["uniforme"] = rows_to_dicts(cur)
+        
+        cur.execute("SELECT * FROM registro_anual WHERE miembro_id=%s ORDER BY anio DESC", [mid])
+        m["registro_anual"] = rows_to_dicts(cur)
+        
+        cur.execute("""
+            SELECT t.*, so.nombre AS origen_nombre, sd.nombre AS destino_nombre
+            FROM   transferencias t
+            LEFT JOIN secciones so ON t.seccion_origen_id  = so.id
+            LEFT JOIN secciones sd ON t.seccion_destino_id = sd.id
+            WHERE  t.miembro_id=%s
+            ORDER  BY t.fecha DESC
+        """, [mid])
+        m["transferencias"] = rows_to_dicts(cur)
+        
     m["edad"] = calcular_edad(m.get("fecha_nacimiento"))
     return m
 
 
 @router.post("", status_code=201)
-def crear_miembro(body: MiembroIn, user: dict = Depends(require_jefe),
-                  con: sqlite3.Connection = Depends(get_db)):
+def crear_miembro(
+    body: MiembroIn, 
+    user: dict = Depends(require_jefe),
+    con = Depends(get_db)
+):
     if body.tipo == "scouter":
         if ROL_NIVEL.get(user["rol"], 0) < ROL_NIVEL["master"]:
             raise HTTPException(403, "Solo el Jefe de Grupo puede dar de alta a scouters.")
@@ -91,7 +105,6 @@ def crear_miembro(body: MiembroIn, user: dict = Depends(require_jefe),
             if body.seccion_id and not can_manage_seccion(user, body.seccion_id):
                 raise HTTPException(403, "Solo puedes agregar beneficiarios a tu propia sección.")
 
-    con.execute("BEGIN IMMEDIATE")
     try:
         if body.tipo == "beneficiario" and body.seccion_id:
             occ = get_seccion_ocupacion(con, body.seccion_id)
@@ -108,30 +121,31 @@ def crear_miembro(body: MiembroIn, user: dict = Depends(require_jefe),
                 "colaborador":     "Colaborador",
             }.get(rol_auto, "Scouter")
 
-        con.execute(
-            "INSERT INTO miembros VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-            [mid, body.numero_scout, body.nombre, body.apellido,
-             body.tipo, body.fecha_nacimiento, cargo_final, body.seccion_id,
-             body.fecha_ingreso or today(), body.telefono, body.email,
-             body.direccion, body.nombre_tutor, body.telefono_emergencia,
-             body.grupo_sanguineo, body.alergias,
-             1 if body.activo else 0, body.notas, now()],
-        )
-
-        if body.tipo == "beneficiario":
-            piezas_uniforme = [
-                "Camisa/Blusa", "Pañoleta", "Pantalón/Falda",
-                "Cinturón", "Zapatos", "Sombrero/Boina",
-            ]
-            for pieza in piezas_uniforme:
-                con.execute(
-                    "INSERT INTO uniformes VALUES (?,?,?,0,NULL,'Pendiente',NULL)",
-                    [uid(), mid, pieza],
-                )
-            con.execute(
-                "INSERT INTO registro_anual VALUES (?,?,?,?,NULL,NULL,NULL)",
-                [uid(), mid, date.today().year, "Pendiente"],
+        with con.cursor() as cur:
+            cur.execute(
+                "INSERT INTO miembros VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                [mid, body.numero_scout, body.nombre, body.apellido,
+                 body.tipo, body.fecha_nacimiento, cargo_final, body.seccion_id,
+                 body.fecha_ingreso or today(), body.telefono, body.email,
+                 body.direccion, body.nombre_tutor, body.telefono_emergencia,
+                 body.grupo_sanguineo, body.alergias,
+                 body.activo, body.notas, now()],
             )
+
+            if body.tipo == "beneficiario":
+                piezas_uniforme = [
+                    "Camisa/Blusa", "Pañoleta", "Pantalón/Falda",
+                    "Cinturón", "Zapatos", "Sombrero/Boina",
+                ]
+                for pieza in piezas_uniforme:
+                    cur.execute(
+                        "INSERT INTO uniformes VALUES (%s,%s,%s,false,NULL,'Pendiente',NULL)",
+                        [uid(), mid, pieza],
+                    )
+                cur.execute(
+                    "INSERT INTO registro_anual VALUES (%s,%s,%s,%s,NULL,NULL,NULL)",
+                    [uid(), mid, date.today().year, "Pendiente"],
+                )
 
         credenciales = None
         if body.tipo == "scouter":
@@ -153,34 +167,45 @@ def actualizar_miembro(
     mid: str,
     body: MiembroIn,
     user: dict = Depends(require_jefe),
-    con: sqlite3.Connection = Depends(get_db),
+    con = Depends(get_db),
 ):
-    if ROL_NIVEL.get(user["rol"], 0) < ROL_NIVEL["master"]:
-        m = con.execute("SELECT seccion_id FROM miembros WHERE id=?", [mid]).fetchone()
-        if m and not can_manage_seccion(user, m["seccion_id"]):
-            raise HTTPException(403, "No tienes permiso para editar miembros de otra sección.")
-    con.execute("""
-        UPDATE miembros
-        SET    numero_scout=?, nombre=?, apellido=?, tipo=?, fecha_nacimiento=?, cargo=?,
-               seccion_id=?, fecha_ingreso=?, telefono=?, email=?, direccion=?,
-               nombre_tutor=?, telefono_emergencia=?, grupo_sanguineo=?, alergias=?,
-               activo=?, notas=?
-        WHERE  id=?
-    """, [body.numero_scout, body.nombre, body.apellido, body.tipo,
-          body.fecha_nacimiento, body.cargo, body.seccion_id,
-          body.fecha_ingreso, body.telefono, body.email,
-          body.direccion, body.nombre_tutor, body.telefono_emergencia,
-          body.grupo_sanguineo, body.alergias,
-          1 if body.activo else 0, body.notas, mid])
+    with con.cursor() as cur:
+        if ROL_NIVEL.get(user["rol"], 0) < ROL_NIVEL["master"]:
+            cur.execute("SELECT seccion_id FROM miembros WHERE id=%s", [mid])
+            m = cur.fetchone()
+            if m and not can_manage_seccion(user, m["seccion_id"]):
+                raise HTTPException(403, "No tienes permiso para editar miembros de otra sección.")
+                
+        cur.execute("""
+            UPDATE miembros
+            SET    numero_scout=%s, nombre=%s, apellido=%s, tipo=%s, fecha_nacimiento=%s, cargo=%s,
+                   seccion_id=%s, fecha_ingreso=%s, telefono=%s, email=%s, direccion=%s,
+                   nombre_tutor=%s, telefono_emergencia=%s, grupo_sanguineo=%s, alergias=%s,
+                   activo=%s, notas=%s
+            WHERE  id=%s
+        """, [body.numero_scout, body.nombre, body.apellido, body.tipo,
+              body.fecha_nacimiento, body.cargo, body.seccion_id,
+              body.fecha_ingreso, body.telefono, body.email,
+              body.direccion, body.nombre_tutor, body.telefono_emergencia,
+              body.grupo_sanguineo, body.alergias,
+              body.activo, body.notas, mid])
+              
     return {"ok": True}
 
 
 @router.delete("/{mid}")
-def eliminar_miembro(mid: str, user: dict = Depends(require_jefe),
-                     con: sqlite3.Connection = Depends(get_db)):
-    if ROL_NIVEL.get(user["rol"], 0) < ROL_NIVEL["master"]:
-        m = con.execute("SELECT seccion_id FROM miembros WHERE id=?", [mid]).fetchone()
-        if m and not can_manage_seccion(user, m["seccion_id"]):
-            raise HTTPException(403, "No tienes permiso para dar de baja a miembros de otra sección.")
-    con.execute("UPDATE miembros SET activo=0 WHERE id=?", [mid])
+def eliminar_miembro(
+    mid: str, 
+    user: dict = Depends(require_jefe),
+    con = Depends(get_db)
+):
+    with con.cursor() as cur:
+        if ROL_NIVEL.get(user["rol"], 0) < ROL_NIVEL["master"]:
+            cur.execute("SELECT seccion_id FROM miembros WHERE id=%s", [mid])
+            m = cur.fetchone()
+            if m and not can_manage_seccion(user, m["seccion_id"]):
+                raise HTTPException(403, "No tienes permiso para dar de baja a miembros de otra sección.")
+                
+        cur.execute("UPDATE miembros SET activo=false WHERE id=%s", [mid])
+        
     return {"ok": True}

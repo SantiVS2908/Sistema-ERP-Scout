@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException
-import sqlite3
 from typing import Optional
 from datetime import date
 
@@ -14,74 +13,92 @@ from utils import get_db, rows_to_dicts, today, uid, now
 # Esquema de validación
 from schemas import ActividadIn
 
-from security import require_jefe
+# Importamos log que faltaba
+from security import require_jefe, log
 
 @router.get("")
 def listar_calendario(
     seccion: Optional[str] = None,
     desde:   Optional[str] = None,
     hasta:   Optional[str] = None,
-    con: sqlite3.Connection = Depends(get_db),
+    con = Depends(get_db),
 ):
     sql    = "SELECT * FROM actividades_grupo WHERE 1=1"
     params: list = []
-    if seccion: sql += " AND seccion=?";  params.append(seccion)
-    if desde:   sql += " AND fecha>=?";   params.append(desde)
-    if hasta:   sql += " AND fecha<=?";   params.append(hasta)
+    if seccion: 
+        sql += " AND seccion=%s"
+        params.append(seccion)
+    if desde:   
+        sql += " AND fecha>=%s"
+        params.append(desde)
+    if hasta:   
+        sql += " AND fecha<=%s"
+        params.append(hasta)
     sql += " ORDER BY fecha ASC, hora ASC"
-    return rows_to_dicts(con.execute(sql, params))
+    
+    with con.cursor() as cur:
+        cur.execute(sql, params)
+        return rows_to_dicts(cur)
 
 
 @router.get("/proximas")
 def proximas_actividades(
     seccion: Optional[str] = None,
-    con: sqlite3.Connection = Depends(get_db),
+    con = Depends(get_db),
 ):
     desde = today()
     hasta = date.fromordinal(date.today().toordinal() + 30).isoformat()
-    sql    = "SELECT * FROM actividades_grupo WHERE fecha>=? AND fecha<=?"
+    sql    = "SELECT * FROM actividades_grupo WHERE fecha>=%s AND fecha<=%s"
     params: list = [desde, hasta]
     if seccion:
-        sql += " AND seccion=?"
+        sql += " AND seccion=%s"
         params.append(seccion)
     sql += " ORDER BY fecha ASC, hora ASC"
-    return rows_to_dicts(con.execute(sql, params))
+    
+    with con.cursor() as cur:
+        cur.execute(sql, params)
+        return rows_to_dicts(cur)
 
 
 @router.get("/proximas_seccion")
 def proximas_actividades_seccion(
     nombre: Optional[str] = None,
     limit:  int           = 3,
-    con: sqlite3.Connection = Depends(get_db),
+    con = Depends(get_db),
 ):
     hoy = today()
-    if nombre:
-        rows = rows_to_dicts(con.execute("""
-            SELECT * FROM actividades_grupo
-            WHERE  fecha >= ?
-              AND  (LOWER(seccion) = LOWER(?) OR seccion = 'Todo el Grupo')
-            ORDER  BY fecha ASC, hora ASC
-            LIMIT  ?
-        """, [hoy, nombre, limit]))
-    else:
-        rows = rows_to_dicts(con.execute("""
-            SELECT * FROM actividades_grupo
-            WHERE  fecha >= ?
-            ORDER  BY fecha ASC, hora ASC
-            LIMIT  ?
-        """, [hoy, limit]))
-    return rows
+    with con.cursor() as cur:
+        if nombre:
+            cur.execute("""
+                SELECT * FROM actividades_grupo
+                WHERE  fecha >= %s
+                  AND  (LOWER(seccion) = LOWER(%s) OR seccion = 'Todo el Grupo')
+                ORDER  BY fecha ASC, hora ASC
+                LIMIT  %s
+            """, [hoy, nombre, limit])
+        else:
+            cur.execute("""
+                SELECT * FROM actividades_grupo
+                WHERE  fecha >= %s
+                ORDER  BY fecha ASC, hora ASC
+                LIMIT  %s
+            """, [hoy, limit])
+        return rows_to_dicts(cur)
 
 
 @router.post("", status_code=201)
-def crear_actividad(body: ActividadIn, user: dict = Depends(require_jefe),
-                    con: sqlite3.Connection = Depends(get_db)):
+def crear_actividad(
+    body: ActividadIn, 
+    user: dict = Depends(require_jefe),
+    con = Depends(get_db)
+):
     aid = uid()
-    con.execute(
-        "INSERT INTO actividades_grupo VALUES (?,?,?,?,?,?,?,?,?)",
-        [aid, body.titulo, body.fecha, body.hora,
-         body.descripcion, body.lugar, body.seccion, body.color, now()],
-    )
+    with con.cursor() as cur:
+        cur.execute(
+            "INSERT INTO actividades_grupo VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            [aid, body.titulo, body.fecha, body.hora,
+             body.descripcion, body.lugar, body.seccion, body.color, now()],
+        )
     log.info("Actividad creada: %s (%s)", body.titulo, body.fecha)
     return {"id": aid}
 
@@ -91,19 +108,24 @@ def actualizar_actividad(
     aid: str,
     body: ActividadIn,
     user: dict = Depends(require_jefe),
-    con: sqlite3.Connection = Depends(get_db),
+    con = Depends(get_db),
 ):
-    con.execute(
-        "UPDATE actividades_grupo SET titulo=?, fecha=?, hora=?, descripcion=?, "
-        "lugar=?, seccion=?, color=? WHERE id=?",
-        [body.titulo, body.fecha, body.hora, body.descripcion,
-         body.lugar, body.seccion, body.color, aid],
-    )
+    with con.cursor() as cur:
+        cur.execute(
+            "UPDATE actividades_grupo SET titulo=%s, fecha=%s, hora=%s, descripcion=%s, "
+            "lugar=%s, seccion=%s, color=%s WHERE id=%s",
+            [body.titulo, body.fecha, body.hora, body.descripcion,
+             body.lugar, body.seccion, body.color, aid],
+        )
     return {"ok": True}
 
 
 @router.delete("/{aid}")
-def eliminar_actividad(aid: str, user: dict = Depends(require_jefe),
-                       con: sqlite3.Connection = Depends(get_db)):
-    con.execute("DELETE FROM actividades_grupo WHERE id=?", [aid])
+def eliminar_actividad(
+    aid: str, 
+    user: dict = Depends(require_jefe),
+    con = Depends(get_db)
+):
+    with con.cursor() as cur:
+        cur.execute("DELETE FROM actividades_grupo WHERE id=%s", [aid])
     return {"ok": True}
