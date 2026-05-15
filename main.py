@@ -62,7 +62,7 @@ from api.uniformes import router as uniformes_router
 app.include_router(uniformes_router)
 
 from api.registro import router as registro_router
-app.include_router(registro_router)}
+app.include_router(registro_router)
 
 # ══════════════════════════════════════════════════════════════════════════
 # ESQUEMA DE BASE DE DATOS (PostgreSQL)
