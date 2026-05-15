@@ -99,7 +99,7 @@ export const Miembros = ({ user }) => {
       telefono_emergencia: m.telefono_emergencia || '',
       grupo_sanguineo: m.grupo_sanguineo || '',
       alergias: m.alergias || '',
-      notas: m.notas || '',
+      notes: m.notas || '',
       activo: m.activo ?? true
     })
     setModalAbierto(true)
@@ -132,9 +132,21 @@ export const Miembros = ({ user }) => {
         if (!r.ok) return r.json().then(err => { throw err })
         return r.json()
       })
-      .then(() => {
+      .then((data) => {
         setModalAbierto(false)
-        cargarMiembros() // Refresca Postgres en vivo
+        cargarMiembros() // Refresca la lista en Postgres en tiempo real
+
+        // 👁️ SI EL BACKEND GENERÓ CREDENCIALES, DETIENE LA INTERFAZ Y LAS MUESTRA:
+        if (data.credenciales) {
+          alert(
+            `📢 ¡CUENTA DE SCOUTER GENERADA CON ÉXITO!\n\n` +
+            `Nombre: ${formData.nombre} ${formData.apellido}\n` +
+            `Usuario: ${data.credenciales.username}\n` +
+            `Correo: ${data.credenciales.email}\n` +
+            `Contraseña Temporal: ${data.credenciales.password_temporal || 'Password123'}\n\n` +
+            `👉 Asegúrate de copiar estos accesos antes de cerrar este aviso.`
+          )
+        }
       })
       .catch(err => {
         alert("Error al procesar la solicitud: " + (err.detail || JSON.stringify(err)))
@@ -317,7 +329,7 @@ export const Miembros = ({ user }) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block font-medium text-gray-700 mb-1">Nombre del Padre o Tutor</label>
-                  <input type="text" name="nombre_tutor" value={formData.nombre_tutor} onChange={manejarCambioInput} className="w-full p-2 border border-[#c8dcc8] rounded-lg outline-none focus:border-[#52b788]" />
+                  <input type="text" name="nombre_tutor" value={formData.nombre_tutor} onChange={formData.nombre_tutor} className="w-full p-2 border border-[#c8dcc8] rounded-lg outline-none focus:border-[#52b788]" />
                 </div>
                 <div>
                   <label className="block font-medium text-gray-700 mb-1">Teléfono de Emergencia *</label>
